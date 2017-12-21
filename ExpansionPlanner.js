@@ -77,75 +77,63 @@ var ExpansionPlanner = {
   },
 
   getRoomDevelopmentPlan: function(room) {
-    var mineWorkUnits = {};
     var miners = {};
     var claimers = {};
     var demand = 0;
 
-    var creeps = Game.creeps;
-    var workers = 0;
-    for (var creepName in creeps) {
-      let creep = creeps[creepName];
+    let hasMule = false;
+
+    const sources = {};
+    room.find(FIND_SOURCES).sort((a, b) => {
+      return a.id < b.id ? -1 : 1;
+    }).forEach((source) => {
+      sources[source.id] = {};
+    });
+
+    for (var creepName in Game.creeps) {
+      let creep = Game.creeps[creepName];
       if (creep.ticksToLive < creep.body.length * 3) {
         continue;
       }
 
-      var workSpeed = creep.getActiveBodyparts(WORK);
       if (creep.memory.role == 'miner') {
         const target = creep.memory.harvestTarget;
-        const source = Game.getObjectById(target);
-        const sourceEnergyPerSecond = source
-              ? source.energyCapacity / 300
-              : 5;
-
-        mineWorkUnits[target] = Math.min(
-          (mineWorkUnits[target] || 0) + workSpeed * 2,
-          sourceEnergyPerSecond
-        );
-        miners[target] = (miners[target] || 0) + 1;
-      } else if (creep.memory.role == 'hauler') {
-        workers++;
-        demand += workSpeed;
+        sources[target].miner = creep;
+      } else if (creep.memory.role == 'mule') {
+        hasMule = true;
+        const target = creep.memory.haulTarget;
+        sources[target].mule = creep;
       } else if (creep.memory.role == 'claimer') {
         claimers[creep.memory.claimTarget] = true;
       }
     };
 
-    var supply = 0;
-    for (var id in mineWorkUnits) {
-      supply += mineWorkUnits[id];
-    }
-
-    if (supply > demand) {
-      // if (workers < 10) {
-      //   return {action: 'spawn_worker'};
-      // }
-    } else if (demand > supply) {
-      const roomsToCheck = [room.name];
-
-      // Check other rooms for sources too
-      if (room.controller &&
-          room.controller.my &&
-          room.controller.level >= 3 &&
-          room.energyCapacityAvailable >= 800) {
-        const exits = Game.map.describeExits(room.name);
-        for (let dir in exits) {
-          if (!ExpansionPlanner.wasRoomHostile(exits[dir])) {
-            roomsToCheck.push(exits[dir]);
-          }
+    // First, check we've developed all sources in the same room
+    // Every source should have 1 miner and 1 hauler
+    for (let id in sources) {
+      if (!sources[id].miner) {
+        return {action: 'spawn_miner', harvestTarget: id};
+      } else if (!sources[id].mule) {
+        if (!hasMule) {
+          return {action: 'spawn_minimum_mule', haulTarget: id};
         }
-      }
-      for (let roomName of roomsToCheck) {
-        let roomMemory = Memory.rooms[roomName];
-        let sourceData = (roomMemory && roomMemory.sources) || {};
-        for (var id in sourceData) {
-          if (sourceData[id].supportedMiners > (miners[id] || 0) &&
-              (mineWorkUnits[id] || 0) < 10) {
-            return {action: 'spawn_miner', harvestTarget: id};
-          }
-        }
+        return {action: 'spawn_mule', haulTarget: id};
       }
     }
+
+    // Check other rooms for sources too
+    // if (room.controller &&
+    //     room.controller.my &&
+    //     room.controller.level >= 3 &&
+    //     room.energyCapacityAvailable >= 800) {
+    //   const exits = Game.map.describeExits(room.name);
+    //   for (let dir in exits) {
+    //     if (!ExpansionPlanner.wasRoomHostile(exits[dir])) {
+    //       roomsToCheck.push(exits[dir]);
+    //     }
+    //   }
+    // }
+
 
     if (room.controller.level >= 4) {
       var candidates = ExpansionPlanner.getScoutCandidates(room.name);
@@ -188,33 +176,6 @@ var ExpansionPlanner = {
     if (room.memory && room.memory.lastSeen > 0) {
       return room.memory;
     }
-
-    // Configure sources
-    room.memory.sources = room.memory.sources || {};
-    var sources = room.find(FIND_SOURCES);
-    sources.forEach(function(source) {
-      var count = 0;
-
-      var pos = source.pos;
-      for (var ii = -1; ii <= 1; ii++) {
-        for (var jj = -1; jj <= 1; jj++) {
-          var x = pos.x + ii;
-          var y = pos.y + jj;
-          if (x < 0 || x >= 50 || y < 0 || y >= 50) {
-            continue;
-          }
-          var roomPos = new RoomPosition(x, y, pos.roomName);
-          if (roomPos.lookFor(LOOK_TERRAIN) == 'plain') {
-            count++;
-          }
-        }
-      }
-
-      if (!room.memory.sources[source.id]) {
-        room.memory.sources[source.id] = {};
-      }
-      room.memory.sources[source.id].supportedMiners = count;
-    });
 
     // Configure exits
     var exits = Game.map.describeExits(room.name);

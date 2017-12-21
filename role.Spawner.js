@@ -97,26 +97,15 @@ var Spawner = {
     return spawn.createCreep([MOVE], undefined, {role: 'scout'});
   },
 
-  spawnMule: function(spawn, assignedRoom) {
+  spawnMule: function(spawn, haulTarget, minimum = false) {
+    const parts = minimum
+          ? [MOVE, CARRY]
+          : Mule.getIdealBuild(spawn.room.energyCapacityAvailable);
+    console.log(parts);
     return spawn.createCreep(
-      Mule.getIdealBuild(spawn.room.energyCapacityAvailable),
+      parts,
       undefined,
-      {role: 'mule', assignedRoom});
-  },
-
-  spawnIdealWorker: function(spawn, parts, memory) {
-    var energyCapacity = spawn.room.energyCapacityAvailable;
-    var energyNeeded = 0;
-    var size = 0;
-    for (; size < parts.length; size++) {
-      var newEnergy = BUILD_COSTS[parts[size]] + energyNeeded;
-      if (newEnergy > energyCapacity) {
-        break;
-      }
-      energyNeeded = newEnergy;
-    }
-
-    return spawn.createCreep(parts.slice(0, size), undefined, memory);
+      {role: 'mule', haulTarget});
   },
 
   run: function(spawn) {
@@ -132,6 +121,7 @@ var Spawner = {
     }
 
     var plan = ExpansionPlanner.getRoomDevelopmentPlan(spawn.room);
+    console.log(JSON.stringify(plan));
     if (plan.action == 'spawn_miner') {
       Spawner.spawnMiner(spawn, plan.harvestTarget);
     } else if (plan.action == 'spawn_scout') {
@@ -143,8 +133,9 @@ var Spawner = {
         {role: 'claimer', claimTarget: plan.claimTarget}
       );
     } else if (plan.action == 'spawn_mule') {
-      Spawner.spawnMule(spawn, plan.assignedRoom);
-      // TODO: REGISTER MULE IN ROOM'S MEMORY!
+      Spawner.spawnMule(spawn, plan.haulTarget);
+    } else if (plan.action == 'spawn_minimum_mule') {
+      Spawner.spawnMule(spawn, plan.haulTarget, true);
     }
   }
 };

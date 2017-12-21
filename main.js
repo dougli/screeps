@@ -15,17 +15,19 @@ require('CreepMixin').run();
 require('mixin.Room').run();
 
 module.exports.loop = function () {
+  // Clean up old memory
   for (var i in Memory.creeps) {
     if (!Game.creeps[i]) {
       delete Memory.creeps[i];
     }
   }
-
   TaskList.reset();
+  // Initialize rooms
   for (var id in Game.rooms) {
     RoomRole.run(Game.rooms[id]);
   }
 
+  // Initialize units
   const units = [];
   for (var name in Game.creeps) {
     var creep = Game.creeps[name];
@@ -49,13 +51,16 @@ module.exports.loop = function () {
 
     TaskList.decrementCreepTasks(Game.creeps[name]);
   }
+
   TaskList.sort();
 
-  ExpansionPlanner.run();
+  for (let id in Game.rooms) {
+    ExpansionPlanner.run();
+  }
 
-  // for (var id in Game.spawns) {
-  //   Spawner.run(Game.spawns[id]);
-  // }
+  for (var id in Game.spawns) {
+    Spawner.run(Game.spawns[id]);
+  }
 
   units.forEach((unit) => {
     unit.run();

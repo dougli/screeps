@@ -10,7 +10,7 @@ class Mule extends BaseCreep {
   }
 
   constructor(creep) {
-    this.creep = creep;
+    super(creep);
   }
 
   _tick() {
@@ -19,12 +19,6 @@ class Mule extends BaseCreep {
     }
 
     const creep = this.creep;
-
-    // Pickup nearby jonx
-    const nearbyEnergy = creep.pos.findInRange(FIND_DROPPED_ENERGY, 1);
-    if (nearbyEnergy.length > 0) {
-      creep.pickup(nearbyEnergy[0]);
-    }
 
     if (!creep.tasks.length) {
       if (creep.carry.energy === 0) {
