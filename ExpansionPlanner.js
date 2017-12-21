@@ -103,7 +103,7 @@ var ExpansionPlanner = {
           sourceEnergyPerSecond
         );
         miners[target] = (miners[target] || 0) + 1;
-      } else if (creep.memory.role == 'worker') {
+      } else if (creep.memory.role == 'hauler') {
         workers++;
         demand += workSpeed;
       } else if (creep.memory.role == 'claimer') {
@@ -116,10 +116,10 @@ var ExpansionPlanner = {
       supply += mineWorkUnits[id];
     }
 
-    if (supply >= demand) {
-      if (workers < 10) {
-        return {action: 'spawn_worker'};
-      }
+    if (supply > demand) {
+      // if (workers < 10) {
+      //   return {action: 'spawn_worker'};
+      // }
     } else if (demand > supply) {
       const roomsToCheck = [room.name];
 

@@ -107,6 +107,12 @@ class TaskList {
     return tasks;
   }
 
+  getBuildTask(creep) {
+    const pos = creep.pos;
+    const tasks = this.findNearbyTasks(pos, [Task.BUILD]);
+    return tasks[0];
+  }
+
   getPickupTask(creep, creepEnergy, harvest = true) {
     const pos = creep.pos;
     const amount = creep.carryCapacity - creepEnergy;
