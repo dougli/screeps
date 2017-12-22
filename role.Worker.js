@@ -1,4 +1,3 @@
-var pickOne = require('pickOne');
 var Task = require('Task');
 var TaskList = require('TaskList');
 

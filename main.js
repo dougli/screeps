@@ -1,5 +1,6 @@
 const Worker = require('role.Worker');
-const Builder = require('Builder');
+const Builder = require('role.Builder');
+const Upgrader = require('role.Upgrader');
 const Spawner = require('role.Spawner');
 const Miner = require('role.Miner');
 const Tower = require('role.tower');
@@ -44,6 +45,9 @@ module.exports.loop = function () {
       break;
     case 'builder':
       units.push(new Builder(creep));
+      break;
+    case 'upgrader':
+      units.push(new Upgrader(creep));
       break;
     default:
       console.log('Unknown creep role ' + creep.memory.role);

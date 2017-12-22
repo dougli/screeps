@@ -1,8 +1,8 @@
-const BaseCreep = require('BaseCreep');
+const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
 const TaskList = require('TaskList');
 
-class Builder extends BaseCreep {
+class Builder extends BaseUnit {
   static getIdealBuild(energy) {
     return BuildCosts.getBestBuild(
       [MOVE, CARRY, WORK, MOVE, WORK, WORK],

@@ -1,3 +1,6 @@
+const Sources = require('Sources');
+const Rooms = require('Rooms');
+
 var OPPOSITE_DIR = {};
 OPPOSITE_DIR[LEFT] = RIGHT;
 OPPOSITE_DIR[RIGHT] = LEFT;
@@ -77,48 +80,49 @@ var ExpansionPlanner = {
   },
 
   getRoomDevelopmentPlan: function(room) {
-    var miners = {};
     var claimers = {};
-    var demand = 0;
 
     let hasMule = false;
+    let hasMiner = false;
+    let upgrader = null;
 
-    const sources = {};
-    room.find(FIND_SOURCES).sort((a, b) => {
+    const sources = room.find(FIND_SOURCES).sort((a, b) => {
       return a.id < b.id ? -1 : 1;
-    }).forEach((source) => {
-      sources[source.id] = {};
     });
 
-    for (var creepName in Game.creeps) {
-      let creep = Game.creeps[creepName];
-      if (creep.ticksToLive < creep.body.length * 3) {
-        continue;
+    for (let source of sources) {
+      if (Sources.getMinerFor(source)) {
+        hasMiner = true;
       }
-
-      if (creep.memory.role == 'miner') {
-        const target = creep.memory.harvestTarget;
-        sources[target].miner = creep;
-      } else if (creep.memory.role == 'mule') {
+      if (Sources.getMuleFor(source)) {
         hasMule = true;
-        const target = creep.memory.haulTarget;
-        sources[target].mule = creep;
-      } else if (creep.memory.role == 'claimer') {
-        claimers[creep.memory.claimTarget] = true;
       }
-    };
+    }
 
     // First, check we've developed all sources in the same room
     // Every source should have 1 miner and 1 hauler
-    for (let id in sources) {
-      if (!sources[id].miner) {
-        return {action: 'spawn_miner', harvestTarget: id};
-      } else if (!sources[id].mule) {
-        if (!hasMule) {
-          return {action: 'spawn_minimum_mule', haulTarget: id};
+    for (let source of sources) {
+      if (!Sources.getMinerFor(source)) {
+        if (!hasMiner) {
+          return {action: 'spawn_minimum_miner', harvestTarget: source.id};
+        } else {
+          return {action: 'spawn_miner', harvestTarget: source.id};
         }
-        return {action: 'spawn_mule', haulTarget: id};
+      } else if (!Sources.getMuleFor(source)) {
+        if (!hasMule) {
+          return {action: 'spawn_minimum_mule', haulTarget: source.id};
+        }
+        return {action: 'spawn_mule', haulTarget: source.id};
       }
+    }
+
+    // Then, check if we want to build structures - prioritize unless
+    // downgrade is imminent
+
+
+    // Then, check if we have something upgrading the room
+    if (room.controller && !Rooms.getUpgraderFor(room)) {
+      return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
     }
 
     // Check other rooms for sources too
@@ -135,38 +139,38 @@ var ExpansionPlanner = {
     // }
 
 
-    if (room.controller.level >= 4) {
-      var candidates = ExpansionPlanner.getScoutCandidates(room.name);
-      if (Object.keys(candidates).length) {
-        var hasScout = false;
-        for (var creepName in creeps) {
-          hasScout = creeps[creepName].memory.role === 'scout';
-          if (hasScout) {
-            break;
-          }
-        }
-        if (!hasScout) {
-          return {action: 'spawn_scout'};
-        }
-      }
-    }
+    // if (room.controller.level >= 4) {
+    //   var candidates = ExpansionPlanner.getScoutCandidates(room.name);
+    //   if (Object.keys(candidates).length) {
+    //     var hasScout = false;
+    //     for (var creepName in creeps) {
+    //       hasScout = creeps[creepName].memory.role === 'scout';
+    //       if (hasScout) {
+    //         break;
+    //       }
+    //     }
+    //     if (!hasScout) {
+    //       return {action: 'spawn_scout'};
+    //     }
+    //   }
+    // }
 
     // Check if we need to claim other rooms
-    if (room.energyCapacityAvailable >= 1250) {
-      for (let sourceID in miners) {
-        let source = Game.getObjectById(sourceID);
-        if (source &&
-            source.room.controller &&
-            !source.room.controller.owner &&
-            !(source.room.controller.id in claimers)) {
-          let reservation = source.room.controller.reservation;
-          if (!reservation ||
-              (reservation.username === 'dougli' && reservation.ticksToEnd < MIN_RESERVATION)) {
-            return {action: 'spawn_claimer', claimTarget: source.room.controller.id};
-          }
-        }
-      }
-    }
+    // if (room.energyCapacityAvailable >= 1250) {
+    //   for (let sourceID in miners) {
+    //     let source = Game.getObjectById(sourceID);
+    //     if (source &&
+    //         source.room.controller &&
+    //         !source.room.controller.owner &&
+    //         !(source.room.controller.id in claimers)) {
+    //       let reservation = source.room.controller.reservation;
+    //       if (!reservation ||
+    //           (reservation.username === 'dougli' && reservation.ticksToEnd < MIN_RESERVATION)) {
+    //         return {action: 'spawn_claimer', claimTarget: source.room.controller.id};
+    //       }
+    //     }
+    //   }
+    // }
 
     return {};
   },
@@ -176,6 +180,14 @@ var ExpansionPlanner = {
     if (room.memory && room.memory.lastSeen > 0) {
       return room.memory;
     }
+
+    const sources = {};
+    room.find(FIND_SOURCES).sort((a, b) => {
+      return a.id < b.id ? -1 : 1;
+    }).forEach((source) => {
+      sources[source.id] = {};
+    });
+    room.memory.sources = sources;
 
     // Configure exits
     var exits = Game.map.describeExits(room.name);

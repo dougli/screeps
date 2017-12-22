@@ -26,7 +26,7 @@ var WALL_HEALTH = [
     0,
     1000,
     10000,
-    20000, 
+    20000,
     80000,
     160000,
     160000,
@@ -48,9 +48,9 @@ function shouldRepair(structure) {
     if (!structure || structure.hits == structure.hitsMax) {
         return false;
     }
-    
+
     var level = structure.room.controller ? structure.room.controller.level : 0;
-    
+
     if (structure.structureType === STRUCTURE_CONTAINER) {
         return structure.hits < structure.hitsMax * 0.5;
     } else if (structure.structureType === STRUCTURE_RAMPART) {
@@ -60,28 +60,11 @@ function shouldRepair(structure) {
     } else if (structure.structureType === STRUCTURE_WALL) {
         return structure.hits < WALL_HEALTH[level];
     }
-    
+
     return true;
 }
 
 var RoomRole = {
-    addPickupTasks: function(room) {
-        var sources = room.find(FIND_SOURCES);
-        sources.forEach((source) => {
-            var config = (room.memory.sources && room.memory.sources[source.id]) || {};
-            var container = Game.getObjectById(config.container);
-            if (container) {
-                var energy = container.store[RESOURCE_ENERGY];
-                if (energy > 0) {
-                    TaskList.addPickupTask(Task.PICKUP, container, energy, PICKUP_PRIORITY);
-                }
-                return;
-            }
-            
-            TaskList.addPickupTask(Task.WAIT_PICKUP, source, source.energy || 1, WAIT_PICKUP_PRIORITY, 4);
-        });
-    },
-    
     addTransferTasks: function(room) {
         var structures = room.find(FIND_MY_STRUCTURES);
         structures.forEach((structure) => {
@@ -92,21 +75,21 @@ var RoomRole = {
             }
         });
     },
-    
+
     addRepairTasks: function(room) {
         var structures = room.find(FIND_MY_STRUCTURES);
         for (var ii = 0; ii < structures.length; ii++) {
             var structure = structures[ii];
             if (shouldRepair(structure)) {
                 TaskList.add(
-                    Task.REPAIR, 
-                    structure, 
+                    Task.REPAIR,
+                    structure,
                     structure.hitsMax - structure.hits,
                     REPAIR_CORE_PRIORITY
                 );
             }
         }
-        
+
         if ((room.controller && room.controller.my) || !room.hasAttackers()) {
             var other = room.find(FIND_STRUCTURES);
             for (var ii = 0; ii < other.length; ii++) {
@@ -117,8 +100,8 @@ var RoomRole = {
                             max = WALL_HEALTH[room.controller.level];
                     }
                     TaskList.add(
-                        Task.REPAIR, 
-                        other[ii], 
+                        Task.REPAIR,
+                        other[ii],
                         max - other[ii].hits,
                         REPAIR_PRIORITY
                     );
@@ -126,7 +109,7 @@ var RoomRole = {
             }
         }
     },
-    
+
     addBuildTasks: function(room) {
         var sites = room.find(FIND_CONSTRUCTION_SITES);
         sites.forEach(function(site) {
@@ -138,30 +121,29 @@ var RoomRole = {
             }
         });
     },
-    
+
     addUpgradeTasks: function(room) {
         if (room.controller && room.controller.my) {
             var priority = room.controller.ticksToDowngrade < 4000
                 ? UPGRADE_TICKDOWN_PRIORITY
                 : UPGRADE_PRIORITY;
             TaskList.add(
-                Task.UPGRADE, 
-                room.controller, 
-                Number.POSITIVE_INFINITY, 
-                priority, 
+                Task.UPGRADE,
+                room.controller,
+                Number.POSITIVE_INFINITY,
+                priority,
                 8
             );
         }
     },
-    
+
     run: function(room) {
         const c = room.controller;
-        
-        if ((c && c.my) || 
-            (c && c.reservation && c.reservation.username === 'dougli') || 
-            (c && !c.owner && !c.reservation) || 
+
+        if ((c && c.my) ||
+            (c && c.reservation && c.reservation.username === 'dougli') ||
+            (c && !c.owner && !c.reservation) ||
             (!c && !room.hasAttackers())) {
-            RoomRole.addPickupTasks(room);
             RoomRole.addTransferTasks(room);
             RoomRole.addRepairTasks(room);
             RoomRole.addBuildTasks(room);

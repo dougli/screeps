@@ -49,7 +49,6 @@ class Task {
 Object.assign(Task, {
   HARVEST: 'harvest',
   PICKUP: 'pickup',
-  WAIT_PICKUP: 'wait_pickup',
   TRANSFER: 'transfer',
   REPAIR: 'repair',
   BUILD: 'build',

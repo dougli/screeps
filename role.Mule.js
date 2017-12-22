@@ -1,77 +1,52 @@
-const BaseCreep = require('BaseCreep');
+const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
 const Worker = require('role.Worker');
 const Task = require('Task');
-const TaskList = require('TaskList');
+const Rooms = require('Rooms');
 
-class Mule extends BaseCreep {
+class Mule extends BaseUnit {
   static getIdealBuild(capacity) {
     return BuildCosts.getBestRepeatingBuild([MOVE, CARRY, CARRY], 6, capacity);
   }
 
   constructor(creep) {
     super(creep);
+    const source = this.getHaulSource();
+    if (source) {
+      source.mule = this;
+    }
+  }
+
+  getHaulSource() {
+    return Game.getObjectById(this.creep.memory.haulTarget);
   }
 
   _tick() {
-    if (!this.hasTask()) {
-      return;
-    }
-
     const creep = this.creep;
 
-    if (!creep.tasks.length) {
+    if (!this.hasTask()) {
       if (creep.carry.energy === 0) {
-        creep.tasks = TaskList.getPickupTask(creep, 0, false);
+        this.setTask(
+          new Task(Task.PICKUP, this.getHaulSource(), creep.carryCapacity)
+        );
       } else {
-        creep.tasks = TaskList.getMuleTransferTasks(creep);
+        // Find a dropoff task
+        this.setTask(Rooms.getDropoffTasks(creep.room)[0]);
       }
     }
 
-    while (creep.tasks.length > 0) {
-      let task = creep.tasks[0];
-      let fn = ACTION_MAP[task.type];
-      let result = fn(creep);
-
-      if (result === true) {
-        return;
-      } else if (result === FAILED) {
-        creep.tasks.shift();
-      } else if (result === MOVE_WITH_ENERGY) {
-        creep.tasks.shift();
-        if (!creep.tasks.length) {
-          creep.tasks = TaskList.getMuleTransferTasks(creep);
-        }
-        if (creep.tasks[0]) {
-          creep.moveToWithTrail(creep.tasks[0].target);
-        }
-        return;
-      } else if (result === MOVE_WITHOUT_ENERGY) {
-        creep.tasks.shift();
-        if (!creep.tasks.length) {
-          creep.tasks = TaskList.getPickupTask(creep, 0, false);
-        }
-        if (creep.tasks[0]) {
-          creep.moveToWithTrail(creep.tasks[0].target);
-        }
-        return;
-      } else {
-        console.log('worker:' + task.type + ' returned bogus. ID: ' + creep.id);
-        creep.tasks.shift();
-        return;
-      }
+    const result = this._doTask();
+    if (result == OK) {
+      return;
+    } else if (result == 'NEED_ENERGY') {
+      this.setTask(
+        new Task(Task.PICKUP, this.getHaulSource(), creep.carryCapacity)
+      );
+    } else if (result == 'DONE') {
+      // Find a dropoff task
+      this.setTask(Rooms.getDropoffTasks(creep.room)[0]);
     }
-
-    // This happens sometimes due to miners transferring to workers.
-    // I didn't bother to sync that logic here, since it lives on the miner
-    // and tries to detect nearby workers that are mining.
-    console.log('worker ran out of tasks. ID: ' + creep.name);
   }
 }
-
-var ACTION_MAP = {
-    [Task.PICKUP]: Worker.pickup,
-    [Task.TRANSFER]: Worker.transfer,
-};
 
 module.exports = Mule;

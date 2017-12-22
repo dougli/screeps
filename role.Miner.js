@@ -1,17 +1,25 @@
+const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
 const ExpansionPlanner = require('ExpansionPlanner');
 const Task = require('Task');
 
-class Miner {
+class Miner extends BaseUnit {
   static getIdealBuild(capacity) {
     return BuildCosts.getBestBuild(
       [MOVE, CARRY, WORK, WORK, WORK, WORK, WORK],
-      capacity
-    );
+      capacity);
   }
 
   constructor(creep) {
-    this.creep = creep;
+    super(creep);
+    const source = this.getMineSource();
+    if (source) {
+      source.miner = this;
+    }
+  }
+
+  getMineSource() {
+    return Game.getObjectById(this.creep.memory.harvestTarget);
   }
 
   getMineSpeed() {
@@ -21,7 +29,7 @@ class Miner {
   run() {
     const creep = this.creep;
 
-    var source = Game.getObjectById(creep.memory.harvestTarget);
+    var source = this.getMineSource();
     if (!source) {
       // Find room of source
       const roomName = ExpansionPlanner.findSourceRoom(creep.memory.harvestTarget);
@@ -68,12 +76,12 @@ class Miner {
 
     var transferred = false;
     var nearbyNoobs = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-      filter: function(creep) {
-        const task = creep.tasks[0];
-        return creep.memory.role === 'worker' &&
+      filter: function(other) {
+        const task = other.tasks[0];
+        return other.memory.role === 'mule' &&
           task &&
-          task.type === Task.WAIT_PICKUP &&
-          task.target.id === source.id
+          task.type === Task.PICKUP &&
+          task.target === creep;
       }
     });
     if (nearbyNoobs.length > 0) {

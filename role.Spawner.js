@@ -1,6 +1,7 @@
-var ExpansionPlanner = require('ExpansionPlanner');
-var Miner = require('role.Miner');
-var Mule = require('role.Mule');
+const ExpansionPlanner = require('ExpansionPlanner');
+const Miner = require('role.Miner');
+const Mule = require('role.Mule');
+const Upgrader = require('role.Upgrader');
 
 var NUM_EXTENSIONS = [0, 0, 5, 10, 20, 30, 30, 30, 30];
 
@@ -86,9 +87,13 @@ var Spawner = {
     return true;
   },
 
-  spawnMiner: function(spawn, harvestTarget) {
+  spawnMiner: function(spawn, harvestTarget, minimum = false) {
+    const parts = minimum
+          ? [MOVE, CARRY, WORK]
+          : Miner.getIdealBuild(spawn.room.energyCapacityAvailable);
+
     return spawn.createCreep(
-      Miner.getIdealBuild(spawn.room.energyCapacityAvailable),
+      parts,
       undefined,
       {role: 'miner', harvestTarget});
   },
@@ -101,11 +106,17 @@ var Spawner = {
     const parts = minimum
           ? [MOVE, CARRY]
           : Mule.getIdealBuild(spawn.room.energyCapacityAvailable);
-    console.log(parts);
     return spawn.createCreep(
       parts,
       undefined,
       {role: 'mule', haulTarget});
+  },
+
+  spawnUpgrader: function(spawn, upgradeTarget) {
+    return spawn.createCreep(
+      Upgrader.getIdealBuild(spawn.room.energyCapacityAvailable),
+      undefined,
+      {role: 'upgrader', upgradeTarget});
   },
 
   run: function(spawn) {
@@ -121,21 +132,24 @@ var Spawner = {
     }
 
     var plan = ExpansionPlanner.getRoomDevelopmentPlan(spawn.room);
-    console.log(JSON.stringify(plan));
     if (plan.action == 'spawn_miner') {
       Spawner.spawnMiner(spawn, plan.harvestTarget);
-    } else if (plan.action == 'spawn_scout') {
-      spawn.createCreep([MOVE], undefined, {role: 'scout'});
-    } else if (plan.action == 'spawn_claimer') {
-      spawn.createCreep(
-        [MOVE, CLAIM, CLAIM],
-        undefined,
-        {role: 'claimer', claimTarget: plan.claimTarget}
-      );
+    } else if (plan.action == 'spawn_minimum_miner') {
+      Spawner.spawnMiner(spawn, plan.harvestTarget, true);
+    // } else if (plan.action == 'spawn_scout') {
+    //   spawn.createCreep([MOVE], undefined, {role: 'scout'});
+    // } else if (plan.action == 'spawn_claimer') {
+    //   spawn.createCreep(
+    //     [MOVE, CLAIM, CLAIM],
+    //     undefined,
+    //     {role: 'claimer', claimTarget: plan.claimTarget}
+    //   );
     } else if (plan.action == 'spawn_mule') {
       Spawner.spawnMule(spawn, plan.haulTarget);
     } else if (plan.action == 'spawn_minimum_mule') {
       Spawner.spawnMule(spawn, plan.haulTarget, true);
+    } else if (plan.action == 'spawn_upgrader') {
+      Spawner.spawnUpgrader(spawn, plan.upgradeTarget);
     }
   }
 };

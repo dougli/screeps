@@ -174,42 +174,6 @@ class TaskList {
     return result;
   }
 
-  getMuleTransferTasks(creep) {
-    const result = [];
-    let energyRemaining = creep.carry.energy;
-
-    let pos = creep.pos;
-    if (pos.roomName != creep.assignedRoom) {
-      const room = Game.rooms[creep.assignedRoom];
-      if (!room) {
-        return result;
-      }
-
-      const spawns = room.find(FIND_MY_SPAWNS);
-      if (!spawns.length) {
-        return result;
-      }
-
-      pos = spawns[0].pos;
-    }
-
-    let tasks = this.findNearbyTasks(pos, [Task.TRANSFER], 1, 0);
-
-    for (let task of tasks) {
-      if (energyRemaining <= 0) {
-        break;
-      }
-
-      let creepAmount = Math.min(task.amount, energyRemaining);
-      newTask = new Task(task.type, task.target, creepAmount);
-      this._decrementTask(newTask);
-      result.push(newTask);
-      energyRemaining -= creepAmount;
-    }
-
-    return result;
-  }
-
   report() {
     this.sort();
     if (this.list.length > 0) {
