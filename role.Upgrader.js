@@ -1,5 +1,6 @@
 const BuildCosts = require('BuildCosts');
 const BaseUnit = require('BaseUnit');
+const Controllers = require('Controllers');
 
 class Upgrader extends BaseUnit {
   static getIdealBuild(capacity) {
@@ -11,19 +12,61 @@ class Upgrader extends BaseUnit {
 
   constructor(creep) {
     super(creep);
-    creep.room.upgrader = this;
+
+    if (!creep.room.controller.upgraders) {
+      creep.room.controller.upgraders = [];
+    }
+    creep.room.controller.upgraders.push(this);
   }
 
   getUpgradeTarget() {
     return Game.getObjectById(this.creep.memory.upgradeTarget);
   }
 
+  getUpgradeSpeed() {
+    return this.creep.getActiveBodyparts(WORK);
+  }
+
   _tick() {
-    const result = this.creep.upgradeController(this.getUpgradeTarget());
+    const controller = this.getUpgradeTarget();
+    const container = Controllers.getContainerFor(controller);
+    const memory = this.creep.memory;
+
+    if (controller.ticksToDowngrade <= 2000) {
+      memory.forceUpgrade = true;
+    } else if (memory.forceUpgrade && controller.ticksToDowngrade > 4000) {
+      delete memory.forceUpgrade;
+    }
+
+    // First, build a container if it's not there
+   if (!container && controller.level > 1 && !memory.forceUpgrade) {
+      const site = Controllers.getContainerSiteFor(controller);
+      if (site) {
+        const result = this.creep.build(site);
+        if (result == ERR_NOT_IN_RANGE || result == ERR_NOT_ENOUGH_RESOURCES) {
+          this.creep.moveToWithTrail(site);
+        }
+      }
+     return;
+   }
+
+    // Otherwise, we upgrade
+    const result = this.creep.upgradeController(controller);
     switch (result) {
     case ERR_NOT_IN_RANGE:
+      this.creep.moveToWithTrail(controller);
     case ERR_NOT_ENOUGH_RESOURCES:
-      this.creep.moveToWithTrail(this.getUpgradeTarget());
+      if (container) {
+        // If a container exists, try to withdraw from it
+        const withdraw = this.creep.withdraw(container, RESOURCE_ENERGY);
+        if (withdraw === ERR_NOT_IN_RANGE) {
+          this.creep.moveToWithTrail(container);
+        }
+      } else {
+        // Otherwise, just move closer to the controller
+        this.creep.moveToWithTrail(controller);
+      }
+      break;
     }
   }
 }

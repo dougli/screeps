@@ -23,16 +23,7 @@ class TaskList {
   }
 
   sort() {
-    this.list = this.list.sort((a, b) => {
-      const pDiff = b.priority - a.priority;
-      if (pDiff != 0) {
-        return pDiff;
-      }
-
-      if (a.type === Task.BUILD && b.type === Task.BUILD) {
-        return a.amount - b.amount;
-      }
-    });
+    this.list = this.list.sort(Task.compare);
   }
 
   decrementAssigned() {

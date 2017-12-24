@@ -65,7 +65,17 @@ class BaseUnit {
     // Pickup nearby jonx
     const nearbyEnergy = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1);
     if (nearbyEnergy.length > 0) {
-      creep.pickup(nearbyEnergy[0]);
+      if (creep.memory.role === 'builder' || creep.memory.role === 'upgrader') {
+        creep.pickup(nearbyEnergy[0]);
+      } else {
+        const nearbyCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 2);
+        const nearBuilder = nearbyCreeps.some(
+          creep => (creep.memory.role === 'builder' || creep.memory.role === 'upgrader')
+        );
+        if (!nearBuilder) {
+          creep.pickup(nearbyEnergy[0]);
+        }
+      }
     }
 
     this._tick();
@@ -83,17 +93,20 @@ class BaseUnit {
       const container = Sources.getContainerFor(task.target);
       if (container) {
         task.target = container;
-      } else if (task.target.miner) {
-        task.target = task.target.miner.creep;
+      } else if (Sources.getMinerFor(task.target)) {
+        task.target = Sources.getMinerFor(task.target).creep;
       }
     }
 
     if (task.target instanceof StructureContainer) {
-      switch (creep.withdraw(task.target, RESOURCE_ENERGY, task.amount)) {
+      const available = task.target.store[RESOURCE_ENERGY];
+      const amount = Math.min(available, needed);
+      switch (creep.withdraw(task.target, RESOURCE_ENERGY, amount)) {
       case ERR_NOT_IN_RANGE:
         creep.moveToWithTrail(task.target);
         return OK;
       case OK:
+        return (amount < needed) ? OK : DONE;
       case ERR_FULL:
       case ERR_NOT_ENOUGH_RESOURCES:
       default:
@@ -141,6 +154,8 @@ class BaseUnit {
     }
 
     switch (creep.transfer(target, RESOURCE_ENERGY, amount)) {
+    case ERR_NOT_ENOUGH_RESOURCES:
+      return NEED_ENERGY;
     case OK:
       if (amount >= currentEnergy) {
         return NEED_ENERGY;
@@ -193,7 +208,10 @@ class BaseUnit {
         : OK;
     case ERR_NOT_IN_RANGE:
       creep.moveToWithTrail(task.target);
-      return DONE;
+      return OK;
+    case ERR_NOT_ENOUGH_RESOURCES:
+      creep.moveToWithTrail(task.target);
+      return NEED_ENERGY;
     case ERR_INVALID_TARGET:
     default:
       return DONE;

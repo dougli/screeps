@@ -14,7 +14,10 @@ class Miner extends BaseUnit {
     super(creep);
     const source = this.getMineSource();
     if (source) {
-      source.miner = this;
+      if (!source.miners) {
+        source.miners = [];
+      }
+      source.miners.push(this);
     }
   }
 
@@ -80,8 +83,7 @@ class Miner extends BaseUnit {
         const task = other.tasks[0];
         return other.memory.role === 'mule' &&
           task &&
-          task.type === Task.PICKUP &&
-          task.target === creep;
+          task.type === Task.PICKUP;
       }
     });
     if (nearbyNoobs.length > 0) {

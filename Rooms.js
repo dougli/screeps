@@ -1,8 +1,33 @@
 const Task = require('Task');
+const Controllers = require('Controllers');
+
+const BUILD_PRIORITY = {
+    [STRUCTURE_SPAWN]: 15,
+    [STRUCTURE_TOWER]: 14,
+    [STRUCTURE_EXTENSION]: 13,
+    [STRUCTURE_RAMPART]: 12,
+    [STRUCTURE_WALL]: 11,
+    [STRUCTURE_ROAD]: 10,
+};
 
 class Rooms {
-  static getUpgraderFor(room) {
-    return room.upgrader;
+  static getBuilderFor(room) {
+    return room.builder;
+  }
+
+  static getBuildTasks(room) {
+    const result = [];
+
+    var sites = room.find(FIND_CONSTRUCTION_SITES);
+    sites.forEach(function(site) {
+      var amount = site.progressTotal - site.progress;
+      var priority = BUILD_PRIORITY[site.structureType];
+      if (priority) {
+        result.push(new Task(Task.BUILD, site, amount, 1, priority));
+      }
+    });
+
+    return result.sort(Task.compare);
   }
 
   static getDropoffTasks(room) {
@@ -21,9 +46,19 @@ class Rooms {
     }
 
     // Then, prioritize builders
+    if (!room.controller || room.controller.ticksToDowngrade > 2000) {
+      const builder = Rooms.getBuilderFor(room);
+      if (builder && builder.hasTask()) {
+        return [new Task(Task.TRANSFER, builder.creep, 1000)];
+      }
+    }
 
     // Finally, prioritize upgraders
-    const upgrader = Rooms.getUpgraderFor(room);
+    const upgradeContainer = Controllers.getContainerFor(room.controller);
+    if (upgradeContainer) {
+      return [new Task(Task.TRANSFER, upgradeContainer, 1000)];
+    }
+    const upgrader = Controllers.getUpgradersFor(room.controller)[0];
     if (upgrader) {
       return [new Task(Task.TRANSFER, upgrader.creep, 1000)];
     }

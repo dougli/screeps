@@ -1,3 +1,4 @@
+const Builder = require('role.Builder');
 const ExpansionPlanner = require('ExpansionPlanner');
 const Miner = require('role.Miner');
 const Mule = require('role.Mule');
@@ -98,10 +99,6 @@ var Spawner = {
       {role: 'miner', harvestTarget});
   },
 
-  spawnScout: function(spawn) {
-    return spawn.createCreep([MOVE], undefined, {role: 'scout'});
-  },
-
   spawnMule: function(spawn, haulTarget, minimum = false) {
     const parts = minimum
           ? [MOVE, CARRY]
@@ -117,6 +114,17 @@ var Spawner = {
       Upgrader.getIdealBuild(spawn.room.energyCapacityAvailable),
       undefined,
       {role: 'upgrader', upgradeTarget});
+  },
+
+  spawnBuilder: function(spawn, room) {
+    return spawn.createCreep(
+      Builder.getIdealBuild(spawn.room.energyCapacityAvailable),
+      undefined,
+      {role: 'builder', room});
+  },
+
+  spawnScout: function(spawn) {
+    return spawn.createCreep([MOVE], undefined, {role: 'scout'});
   },
 
   run: function(spawn) {
@@ -150,6 +158,8 @@ var Spawner = {
       Spawner.spawnMule(spawn, plan.haulTarget, true);
     } else if (plan.action == 'spawn_upgrader') {
       Spawner.spawnUpgrader(spawn, plan.upgradeTarget);
+    } else if (plan.action == 'spawn_builder') {
+      Spawner.spawnBuilder(spawn, plan.room);
     }
   }
 };

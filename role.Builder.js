@@ -1,6 +1,7 @@
 const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
 const TaskList = require('TaskList');
+const Rooms = require('Rooms');
 
 class Builder extends BaseUnit {
   static getIdealBuild(energy) {
@@ -11,12 +12,19 @@ class Builder extends BaseUnit {
   }
 
   constructor(creep) {
-    this.creep = creep;
+    super(creep);
+    if (this.getRoom()) {
+      this.getRoom().builder = this;
+    }
+  }
+
+  getRoom() {
+    return Game.rooms[this.creep.memory.room];
   }
 
   _tick() {
     if (!this.hasTask()) {
-      this.setTask(TaskList.getBuildTask(this.creep));
+      this.setTask(Rooms.getBuildTasks(this.getRoom())[0]);
       return;
     }
 
@@ -24,17 +32,8 @@ class Builder extends BaseUnit {
     if (result === OK) {
       return;
     } else if (result === 'NEED_ENERGY') {
-      // Either we get some energy, or we wait for a mule
-      // If there is a mule + a miner, we wait, otherwise we go fetch juice
-
-      // 1. Find mule within reasonable distance
-      // 2. Find miner within reasonable distance
-
-      // 3. Else, mine
-      var pickup = TaskList.getPickupTask(this.creep, 0);
-      if (pickup.length > 0) {
-        this.creep.tasks.unshift(pickup[0])
-      }
+      // Just wait for a mule if we need energy
+      return;
     } else if (result === 'DONE') {
       if (this.creep.tasks.length === 0) {
         // Find another build task
@@ -46,3 +45,5 @@ class Builder extends BaseUnit {
     }
   }
 }
+
+module.exports = Builder;

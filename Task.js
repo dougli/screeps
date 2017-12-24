@@ -35,6 +35,17 @@ class Task {
     return {t: this.type, tg: target, a: this.amount};
   }
 
+  static compare(a, b) {
+    const pDiff = b.priority - a.priority;
+    if (pDiff != 0) {
+      return pDiff;
+    }
+
+    if (a.type === Task.BUILD && b.type === Task.BUILD) {
+      return a.amount - b.amount;
+    }
+  }
+
   static deserializeForCreep(data) {
     var target = data.t === Task.SCOUT
         ? data.tg

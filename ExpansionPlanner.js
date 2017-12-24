@@ -1,5 +1,6 @@
 const Sources = require('Sources');
 const Rooms = require('Rooms');
+const Controllers = require('Controllers');
 
 var OPPOSITE_DIR = {};
 OPPOSITE_DIR[LEFT] = RIGHT;
@@ -80,17 +81,16 @@ var ExpansionPlanner = {
   },
 
   getRoomDevelopmentPlan: function(room) {
-    var claimers = {};
-
     let hasMule = false;
     let hasMiner = false;
-    let upgrader = null;
+    let energyPerTick = 0;
 
     const sources = room.find(FIND_SOURCES).sort((a, b) => {
       return a.id < b.id ? -1 : 1;
     });
 
     for (let source of sources) {
+      energyPerTick += Sources.getEnergyPerTick(source);
       if (Sources.getMinerFor(source)) {
         hasMiner = true;
       }
@@ -100,7 +100,7 @@ var ExpansionPlanner = {
     }
 
     // First, check we've developed all sources in the same room
-    // Every source should have 1 miner and 1 hauler
+    // Every source should have at least 1 miner and 1 hauler
     for (let source of sources) {
       if (!Sources.getMinerFor(source)) {
         if (!hasMiner) {
@@ -118,10 +118,24 @@ var ExpansionPlanner = {
 
     // Then, check if we want to build structures - prioritize unless
     // downgrade is imminent
-
+    if (!Rooms.getBuilderFor(room) && Rooms.getBuildTasks(room).length > 0) {
+      return {action: 'spawn_builder', room: room.name};
+    }
 
     // Then, check if we have something upgrading the room
-    if (room.controller && !Rooms.getUpgraderFor(room)) {
+    if (room.controller && Controllers.getUpgradeSpeed(room.controller) == 0) {
+      return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
+    }
+
+    // Then, full expand out all miners as needed
+    for (let source of sources) {
+      if (Sources.getRemainingMineSpeed(source) >= 4) {
+        return {action: 'spawn_miner', harvestTarget: source.id};
+      }
+    }
+
+    // Then, fully expand out upgrade speed
+    if (energyPerTick - Controllers.getUpgradeSpeed(room.controller) > 2) {
       return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
     }
 
