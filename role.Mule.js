@@ -6,19 +6,27 @@ const Rooms = require('Rooms');
 
 class Mule extends BaseUnit {
   static getIdealBuild(capacity) {
-    return BuildCosts.getBestRepeatingBuild([MOVE, CARRY, CARRY], 6, capacity);
+    // Roadless config
+    return BuildCosts.getBestRepeatingBuild([MOVE, CARRY], 12, capacity);
   }
 
   constructor(creep) {
     super(creep);
     const source = this.getHaulSource();
     if (source) {
-      source.mule = this;
+      source.mules = source.mules || [];
+      source.mules.push(this);
     }
   }
 
   getHaulSource() {
     return Game.getObjectById(this.creep.memory.haulTarget);
+  }
+
+  getMuleSpeed() {
+    // Assuming an average round trip takes 60 ticks:
+    // efficiency = carryCapacity / roundTripTime;
+    return this.creep.getActiveBodyparts(CARRY) * 50 / 60;
   }
 
   _tick() {
@@ -42,9 +50,13 @@ class Mule extends BaseUnit {
       this.setTask(
         new Task(Task.PICKUP, this.getHaulSource(), creep.carryCapacity)
       );
+      this.creep.moveToWithTrail(this.getHaulSource());
     } else if (result == 'DONE') {
       // Find a dropoff task
       this.setTask(Rooms.getDropoffTasks(creep.room)[0]);
+      if (this.hasTask()) {
+        this.creep.moveToWithTrail(this.getCurrentTask().target);
+      }
     }
   }
 }

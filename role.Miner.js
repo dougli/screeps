@@ -14,9 +14,7 @@ class Miner extends BaseUnit {
     super(creep);
     const source = this.getMineSource();
     if (source) {
-      if (!source.miners) {
-        source.miners = [];
-      }
+      source.miners = source.miners || [];
       source.miners.push(this);
     }
   }

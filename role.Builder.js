@@ -6,7 +6,7 @@ const Rooms = require('Rooms');
 class Builder extends BaseUnit {
   static getIdealBuild(energy) {
     return BuildCosts.getBestBuild(
-      [MOVE, CARRY, WORK, MOVE, WORK, WORK],
+      [MOVE, CARRY, WORK, WORK, WORK, MOVE, WORK],
       energy
     );
   }

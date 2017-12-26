@@ -93,8 +93,8 @@ class BaseUnit {
       const container = Sources.getContainerFor(task.target);
       if (container) {
         task.target = container;
-      } else if (Sources.getMinerFor(task.target)) {
-        task.target = Sources.getMinerFor(task.target).creep;
+      } else if (Sources.getMinersFor(task.target).length) {
+        task.target = Sources.getMinersFor(task.target)[0].creep;
       }
     }
 

@@ -59,8 +59,16 @@ class Controllers {
       return null;
     }
 
-    const path = controller.pos.findPathTo(closestSource);
-    const pos = path[1];
+    // We pick something that's exactly 3 tiles from the controller
+
+    const path = controller.pos.findPathTo(closestSource, {ignoreCreeps: true});
+    let pos = null;
+    for (var ii = 0; ii < path.length; ii++) {
+      if (controller.pos.getRangeTo(path[ii].x, path[ii].y) > 3) {
+        break;
+      }
+      pos = path[ii];
+    }
     if (!pos) {
       Game.notify('Can\'t build controller container at room ' + room.name, 1440);
       return null;

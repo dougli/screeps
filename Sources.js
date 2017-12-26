@@ -8,12 +8,8 @@ class Sources {
   }
 
   /**
-   * Returns the Miner creep only if it's nearby.
+   * Returns Miner creeps assigned to this source.
    */
-  static getMinerFor(source) {
-    return Sources.getMinersFor(source)[0];
-  }
-
   static getMinersFor(source) {
     return (source.miners || []);
   }
@@ -29,8 +25,18 @@ class Sources {
     return Math.max(energyPerTick - speed, 0);
   }
 
-  static getMuleFor(source) {
-    return source.mule;
+  /**
+   * Returns Mule creeps assigned to this source.
+   */
+  static getMulesFor(source) {
+    return (source.mules || []);
+  }
+
+  static getRemainingMuleSpeed(source) {
+    const energyPerTick = Sources.getEnergyPerTick(source);
+    const speed = Sources.getMulesFor(source)
+          .reduce((accum, mule) => accum + mule.getMuleSpeed(), 0);
+    return Math.max(energyPerTick - speed, 0);
   }
 }
 

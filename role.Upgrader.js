@@ -38,8 +38,13 @@ class Upgrader extends BaseUnit {
       delete memory.forceUpgrade;
     }
 
-    // First, build a container if it's not there
-   if (!container && controller.level > 1 && !memory.forceUpgrade) {
+    if (container) {
+      this.creep.withdraw(container, RESOURCE_ENERGY);
+      if (container.hits < container.hitsMax) {
+        this.creep.repair(container);
+      }
+    } else if (controller.level >= 2 && !memory.forceUpgrade) {
+      // Build a container if it's not there if RCL >= 2
       const site = Controllers.getContainerSiteFor(controller);
       if (site) {
         const result = this.creep.build(site);
@@ -47,21 +52,19 @@ class Upgrader extends BaseUnit {
           this.creep.moveToWithTrail(site);
         }
       }
-     return;
-   }
+      return;
+    }
+
 
     // Otherwise, we upgrade
     const result = this.creep.upgradeController(controller);
     switch (result) {
     case ERR_NOT_IN_RANGE:
       this.creep.moveToWithTrail(controller);
+      break;
     case ERR_NOT_ENOUGH_RESOURCES:
       if (container) {
-        // If a container exists, try to withdraw from it
-        const withdraw = this.creep.withdraw(container, RESOURCE_ENERGY);
-        if (withdraw === ERR_NOT_IN_RANGE) {
-          this.creep.moveToWithTrail(container);
-        }
+        this.creep.moveToWithTrail(container);
       } else {
         // Otherwise, just move closer to the controller
         this.creep.moveToWithTrail(controller);

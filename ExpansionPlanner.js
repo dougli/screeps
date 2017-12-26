@@ -91,10 +91,10 @@ var ExpansionPlanner = {
 
     for (let source of sources) {
       energyPerTick += Sources.getEnergyPerTick(source);
-      if (Sources.getMinerFor(source)) {
+      if (Sources.getMinersFor(source).length > 0) {
         hasMiner = true;
       }
-      if (Sources.getMuleFor(source)) {
+      if (Sources.getMulesFor(source).length) {
         hasMule = true;
       }
     }
@@ -102,13 +102,13 @@ var ExpansionPlanner = {
     // First, check we've developed all sources in the same room
     // Every source should have at least 1 miner and 1 hauler
     for (let source of sources) {
-      if (!Sources.getMinerFor(source)) {
+      if (!Sources.getMinersFor(source).length) {
         if (!hasMiner) {
           return {action: 'spawn_minimum_miner', harvestTarget: source.id};
         } else {
           return {action: 'spawn_miner', harvestTarget: source.id};
         }
-      } else if (!Sources.getMuleFor(source)) {
+      } else if (!Sources.getMulesFor(source).length) {
         if (!hasMule) {
           return {action: 'spawn_minimum_mule', haulTarget: source.id};
         }
@@ -118,24 +118,32 @@ var ExpansionPlanner = {
 
     // Then, check if we want to build structures - prioritize unless
     // downgrade is imminent
-    if (!Rooms.getBuilderFor(room) && Rooms.getBuildTasks(room).length > 0) {
+    const hasBuildSites = Rooms.getBuildTasks(room).length > 0;
+    if (!Rooms.getBuilderFor(room) && hasBuildSites) {
       return {action: 'spawn_builder', room: room.name};
     }
 
     // Then, check if we have something upgrading the room
-    if (room.controller && Controllers.getUpgradeSpeed(room.controller) == 0) {
+    if (room.controller &&
+        (!hasBuildSites || room.controller.ticksToDowngrade < 2000) &&
+        Controllers.getUpgradeSpeed(room.controller) == 0) {
       return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
     }
 
     // Then, full expand out all miners as needed
     for (let source of sources) {
-      if (Sources.getRemainingMineSpeed(source) >= 4) {
+      if (Sources.getRemainingMineSpeed(source) > 1) {
         return {action: 'spawn_miner', harvestTarget: source.id};
+      }
+      if (Sources.getRemainingMuleSpeed(source) > 1) {
+        return {action: 'spawn_mule', haulTarget: source.id};
       }
     }
 
     // Then, fully expand out upgrade speed
-    if (energyPerTick - Controllers.getUpgradeSpeed(room.controller) > 2) {
+    if (Rooms.getBuildTasks(room).length == 0 &&
+        Controllers.getContainerFor(room.controller) &&
+        energyPerTick - Controllers.getUpgradeSpeed(room.controller) > 2) {
       return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
     }
 
