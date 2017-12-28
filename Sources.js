@@ -3,8 +3,33 @@ class Sources {
    * Returns the container that represents this source
    */
   static getContainerFor(source) {
-    const sourceMemory = source.room.memory.sources[source.id];
-    return Game.getObjectById(sourceMemory.container);
+    const memory = source.room.memory.sources[source.id];
+    if (memory.container) {
+      return Game.getObjectById(memory.container);
+    }
+
+    if (memory.containerSite) {
+      const pos = memory.containerSite;
+      const structure = room.lookForAt(LOOK_STRUCTURES, pos.x, pos.y)[0];
+      if (structure && structure.structureType == STRUCTURE_CONTAINER) {
+        memory.container = structure.id;
+        delete memory.containerSite;
+        return structure;
+      }
+    }
+
+    return null;
+  }
+
+  static getContainerSiteFor(source) {
+    const memory = source.room.memory.sources[source.id];
+    const pos = memory.containerSite;
+    if (pos) {
+      const site = room.lookForAt(LOOK_CONSTRUCTION_SITES, pos.x, pos.y)[0];
+      if (site && site.structureType === STRUCTURE_CONTAINER) {
+        return site;
+      }
+    }
   }
 
   /**

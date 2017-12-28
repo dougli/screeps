@@ -1,7 +1,9 @@
 const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
 const ExpansionPlanner = require('ExpansionPlanner');
+const Sources = require('Sources');
 const Task = require('Task');
+const Profiler = require('Profiler');
 
 class Miner extends BaseUnit {
   static getIdealBuild(capacity) {
@@ -45,52 +47,33 @@ class Miner extends BaseUnit {
     }
 
 
-    var sourceMemory = ExpansionPlanner.getRoomMemory(source.room).sources[source.id];
-    var container = Game.getObjectById(sourceMemory.container);
+    var container = Sources.getContainerFor(source);
     var site = null;
     if (!container) {
-      if (sourceMemory.containerSite) {
-        var coords = sourceMemory.containerSite;
-        var pos = new RoomPosition(coords.x, coords.y, creep.room.name);
-        container = pos.findInRange(
-          FIND_STRUCTURES,
-          0,
-          {filter: {structureType: STRUCTURE_CONTAINER}}
-        )[0];
-        if (container) {
-          sourceMemory.container = container.id;
-          delete sourceMemory.containerSite;
-        } else {
-          site = pos.findInRange(
-            FIND_CONSTRUCTION_SITES,
-            0,
-            {filter: {structureType: STRUCTURE_CONTAINER}}
-          )[0];
-        }
-      }
-
+      site = Sources.getContainerSiteFor(source);
       if (!site) {
         sourceMemory.containerSite = this._constructContainerFor(source);
       }
     }
 
-
     var transferred = false;
-    var nearbyNoobs = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-      filter: function(other) {
-        const task = other.tasks[0];
-        return other.memory.role === 'mule' &&
-          task &&
-          task.type === Task.PICKUP;
+    if (!container) {
+      var nearbyNoobs = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+        filter: function(other) {
+          const task = other.tasks[0];
+          return other.memory.role === 'mule' &&
+            task &&
+            task.type === Task.PICKUP;
+        }
+      });
+      if (nearbyNoobs.length > 0) {
+        var maxTransfer = Math.min(
+          creep.carry.energy,
+          nearbyNoobs[0].carryCapacity - nearbyNoobs[0].carry.energy
+        );
+        transferred = ExpansionPlanner.transferMinedToCreep(creep, nearbyNoobs[0], maxTransfer) === OK;
       }
-    });
-    if (nearbyNoobs.length > 0) {
-      var maxTransfer = Math.min(
-        creep.carry.energy,
-        nearbyNoobs[0].carryCapacity - nearbyNoobs[0].carry.energy
-      );
-      transferred = ExpansionPlanner.transferMinedToCreep(creep, nearbyNoobs[0], maxTransfer) === OK;
-    } else if (container && container.hits == container.hitsMax) {
+    } else if (container.hits == container.hitsMax) {
       transferred = creep.transfer(container, RESOURCE_ENERGY, creep.carry.energy) === OK;
     }
 
@@ -165,5 +148,7 @@ class Miner extends BaseUnit {
     return {x: best.x, y: best.y};
   }
 }
+
+Profiler.registerClass(Miner, 'Miner');
 
 module.exports = Miner;

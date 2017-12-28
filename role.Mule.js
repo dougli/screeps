@@ -3,6 +3,7 @@ const BuildCosts = require('BuildCosts');
 const Worker = require('role.Worker');
 const Task = require('Task');
 const Rooms = require('Rooms');
+const Profiler = require('Profiler');
 
 class Mule extends BaseUnit {
   static getIdealBuild(capacity) {
@@ -60,5 +61,7 @@ class Mule extends BaseUnit {
     }
   }
 }
+
+Profiler.registerClass(Mule, 'Mule');
 
 module.exports = Mule;

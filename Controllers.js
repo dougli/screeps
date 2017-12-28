@@ -1,4 +1,16 @@
 class Controllers {
+  static _getMemory(room) {
+    if (!(room instanceof Room)) {
+      throw Exception('Expected Room');
+    }
+
+    if (!room.memory.controller) {
+      room.memory.controller = {};
+    }
+
+    return room.memory.controller;
+  }
+
   static getUpgradersFor(controller) {
     return (controller.upgraders || []);
   }
@@ -12,10 +24,7 @@ class Controllers {
 
   static getContainerFor(controller) {
     const room = controller.room;
-    const memory = room.memory.controller;
-    if (!memory) {
-      return null;
-    }
+    const memory = Controllers._getMemory(room);
 
     if (memory.container) {
       return Game.getObjectById(memory.container);
@@ -41,8 +50,9 @@ class Controllers {
 
     // Fetch from memory
     const room = controller.room;
-    if (room.memory.controller && room.memory.controller.containerSite) {
-      const pos = room.memory.controller.containerSite;
+    const memory = Controllers._getMemory(room);
+    if (memory.containerSite) {
+      const pos = memory.containerSite;
       const site = room.lookForAt(LOOK_CONSTRUCTION_SITES, pos.x, pos.y)[0];
       if (site && site.structureType === STRUCTURE_CONTAINER) {
         return site;
@@ -75,6 +85,11 @@ class Controllers {
     }
     const structures = room.lookForAt(LOOK_STRUCTURES, pos.x, pos.y);
     if (structures.length) {
+      if (structures[0].structureType === STRUCTURE_CONTAINER) {
+        memory.container = structures[0].id;
+        delete memory.containerSite;
+        return null;
+      }
       Game.notify('Can\'t build controller container at room ' + room.name, 1440);
       return null;
     }
@@ -86,11 +101,7 @@ class Controllers {
   static _createContainerSiteForAt(controller, x, y) {
     const room = controller.room;
     if (room.createConstructionSite(x, y, STRUCTURE_CONTAINER) === OK) {
-      if (!room.memory.controller) {
-        room.memory.controller = {};
-      }
-
-      room.memory.controller.containerSite = {x, y};
+      Controllers._getMemory(room).containerSite = {x, y};
     }
   }
 }

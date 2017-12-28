@@ -1,6 +1,7 @@
 const BuildCosts = require('BuildCosts');
 const BaseUnit = require('BaseUnit');
 const Controllers = require('Controllers');
+const Profiler = require('Profiler');
 
 class Upgrader extends BaseUnit {
   static getIdealBuild(capacity) {
@@ -73,5 +74,7 @@ class Upgrader extends BaseUnit {
     }
   }
 }
+
+Profiler.registerClass(Upgrader, 'Upgrader');
 
 module.exports = Upgrader;
