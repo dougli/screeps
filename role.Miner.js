@@ -75,7 +75,7 @@ class Miner extends BaseUnit {
         container &&
         container.hits < container.hitsMax) {
       creep.repair(container);
-    } else if (!creep.carry.energy || creep.carry.energy < creep.carryCapacity - this.getMineSpeed()) {
+    } else if (creep.carry.energy < creep.carryCapacity - this.getMineSpeed()) {
       var harvestResult = creep.harvest(source);
       if (harvestResult == ERR_NOT_IN_RANGE) {
         creep.moveToWithTrail(source);

@@ -99,16 +99,19 @@ class BaseUnit {
     }
 
     if (task.target instanceof StructureContainer) {
-      const available = task.target.store[RESOURCE_ENERGY];
-      const amount = Math.min(available, needed);
-      switch (creep.withdraw(task.target, RESOURCE_ENERGY, amount)) {
-      case ERR_NOT_IN_RANGE:
+      if (!creep.pos.isNearTo(task.target)) {
         creep.moveToWithTrail(task.target);
         return OK;
+      }
+
+      // Wait until we have enough to withdraw to save CPU
+      const available = task.target.store[RESOURCE_ENERGY];
+      if (available < needed) {
+        return OK;
+      }
+
+      switch (creep.withdraw(task.target, RESOURCE_ENERGY, needed)) {
       case OK:
-        return (amount < needed) ? OK : DONE;
-      case ERR_FULL:
-      case ERR_NOT_ENOUGH_RESOURCES:
       default:
         return DONE;
       }
