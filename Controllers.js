@@ -70,7 +70,6 @@ class Controllers {
     }
 
     // We pick something that's exactly 3 tiles from the controller
-
     const path = controller.pos.findPathTo(closestSource, {ignoreCreeps: true});
     let pos = null;
     for (var ii = 0; ii < path.length; ii++) {

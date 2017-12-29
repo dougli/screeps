@@ -3,7 +3,7 @@ class Sources {
    * Returns the container that represents this source
    */
   static getContainerFor(source) {
-    const memory = source.room.memory.sources[source.id];
+    const memory = Sources._getMemoryFor(source);
     if (memory.container) {
       return Game.getObjectById(memory.container);
     }
@@ -22,7 +22,11 @@ class Sources {
   }
 
   static getContainerSiteFor(source) {
-    const memory = source.room.memory.sources[source.id];
+    if (Sources.getContainerFor(source)) {
+      return null;
+    }
+
+    const memory = Source._getMemoryFor(source);
     const pos = memory.containerSite;
     if (pos) {
       const site = room.lookForAt(LOOK_CONSTRUCTION_SITES, pos.x, pos.y)[0];
@@ -30,6 +34,9 @@ class Sources {
         return site;
       }
     }
+
+    Sources._constructContainerFor(source);
+    return null;
   }
 
   /**
@@ -62,6 +69,35 @@ class Sources {
     const speed = Sources.getMulesFor(source)
           .reduce((accum, mule) => accum + mule.getMuleSpeed(), 0);
     return Math.max(energyPerTick - speed, 0);
+  }
+
+  static _constructContainerFor(source) {
+    var spawn = source.room.find(FIND_MY_STRUCTURES, {
+      filter: {structureType: STRUCTURE_SPAWN}
+    })[0];
+
+    const path = source.pos.findPathTo(spawn, {ignoreCreeps: true});
+    const pos = path[0];
+    if (!pos) {
+      Game.notify('Can\'t build source container at room ' + room.name, 1440);
+    }
+
+    if (pos.createConstructionSite(STRUCTURE_CONTAINER) === OK) {
+      Sources._getMemoryFor(source).containerSite = {x: pos.x, y: pos.y};
+    } else {
+      Game.notify('Can\'t build source container at room ' + room.name, 1440);
+    }
+  }
+
+  static _getMemoryFor(source) {
+    const roomMemory = source.room.memory;
+    if (!roomMemory.sources) {
+      roomMemory.sources = {};
+    }
+    if (!roomMemory.sources[source.id]) {
+      roomMemory.sources[source.id] = {};
+    }
+    return roomMemory.sources[source.id];
   }
 }
 
