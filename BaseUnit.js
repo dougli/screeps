@@ -217,27 +217,6 @@ class BaseUnit {
       return DONE;
     }
   }
-
-  // _upgrade(task) {
-  //   const creep = this.creep;
-  //   let energy = creep.carry.energy;
-  //   if (energy === 0) {
-  //     return FAILED;
-  //   }
-
-  //   var result = creep.upgradeController(task.target);
-  //   if (result === ERR_NOT_IN_RANGE) {
-  //     creep.moveToWithTrail(task.target);
-  //   } else if (result === OK && energy > creep.getActiveBodyparts(WORK)) {
-  //     if (creep.pos.getRangeTo(task.target) >= 3) {
-  //       creep.moveToWithTrail
-  //     }
-  //   } else if (result === OK && energy <= creep.getActiveBodyparts(WORK)) {
-  //     return NEED_ENERGY;
-  //   }
-
-  //   return true;
-  // }
 }
 
 module.exports = BaseUnit;

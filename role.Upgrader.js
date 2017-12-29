@@ -40,7 +40,10 @@ class Upgrader extends BaseUnit {
     }
 
     if (container) {
-      this.creep.withdraw(container, RESOURCE_ENERGY);
+      // To save CPU, withdraw only when we need to
+      if (this.creep.carry[RESOURCE_ENERGY] < this.getUpgradeSpeed() * 2) {
+        this.creep.withdraw(container, RESOURCE_ENERGY);
+      }
       if (container.hits < container.hitsMax) {
         this.creep.repair(container);
       }
@@ -56,8 +59,6 @@ class Upgrader extends BaseUnit {
       return;
     }
 
-
-    // Otherwise, we upgrade
     const result = this.creep.upgradeController(controller);
     switch (result) {
     case ERR_NOT_IN_RANGE:
