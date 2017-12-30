@@ -31,7 +31,6 @@ class Miner extends BaseUnit {
 
   run() {
     const creep = this.creep;
-
     var source = this.getMineSource();
     if (!source) {
       // Find room of source
@@ -46,45 +45,49 @@ class Miner extends BaseUnit {
       return;
     }
 
-    var container = Sources.getContainerFor(source);
-    let site = null;
-    if (!container) {
-      site = Sources.getContainerSiteFor(source);
-    }
-
-    var transferred = false;
-    if (!container) {
-      var nearbyNoobs = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-        filter: function(other) {
-          return other.memory.role === 'mule';
-        }
-      });
-      if (nearbyNoobs.length > 0) {
-        var maxTransfer = Math.min(
-          creep.carry.energy,
-          nearbyNoobs[0].carryCapacity - nearbyNoobs[0].carry.energy
-        );
-        transferred = ExpansionPlanner.transferMinedToCreep(creep, nearbyNoobs[0], maxTransfer) === OK;
-      }
-    } else if (container.hits == container.hitsMax) {
-      transferred = creep.transfer(container, RESOURCE_ENERGY, creep.carry.energy) === OK;
-    }
-
-    if (!transferred &&
-        creep.carry.energy > 0 &&
-        container &&
-        container.hits < container.hitsMax) {
+    const container = Sources.getContainerFor(source);
+    const canCarryMore =
+          creep.carry.energy <= (creep.carryCapacity - this.getMineSpeed());
+    // 1. Repair if possible - we assume the miner is nearby since it will not
+    // have energy if it didn't mine, which it needs to walk to
+    if (creep.carry.energy > 0 && container && container.hits < container.hitsMax) {
       creep.repair(container);
-    } else if (creep.carry.energy < creep.carryCapacity - this.getMineSpeed()) {
-      var harvestResult = creep.harvest(source);
-      if (harvestResult == ERR_NOT_IN_RANGE) {
+      return; // Creeps cannot repair and mine at the same time
+    }
+
+    // 2. Mine if we have enough empty capacity
+    if (canCarryMore) {
+      if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
         creep.moveToWithTrail(source);
       }
-    } else if (!container && site) {
-      creep.build(site);
-    } else if (container) {
-      creep.moveToWithTrail(container);
-      creep.transfer(container, RESOURCE_ENERGY, creep.carry.energy);
+    }
+
+    // 3. Transfer to container or, if none, nearby mules
+    if (creep.carry.energy > 0) {
+      if (container) {
+        const result = creep.transfer(container, RESOURCE_ENERGY, creep.carry.energy);
+        if (result === ERR_NOT_IN_RANGE && !canCarryMore) {
+          creep.moveToWithTrail(container);
+        }
+      } else {
+        const nearbyMule = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+          filter: (other) => other.memory.role === 'mule',
+        })[0];
+
+        if (nearbyMule) {
+          var maxTransfer = Math.min(
+            creep.carry.energy,
+            nearbyMule.carryCapacity - nearbyMule.carry.energy
+          );
+          creep.transfer(nearbyMule, RESOURCE_ENERGY, maxTransfer);
+        }
+      }
+    }
+
+    // 4. Build container
+    if (!container && creep.carry.energy > 0) {
+      const site = Sources.getContainerSiteFor(source);
+      site && creep.build(site);
     }
   }
 }

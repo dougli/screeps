@@ -72,14 +72,6 @@ var ExpansionPlanner = {
     return towers.length > 0;
   },
 
-  transferMinedToCreep: function(miner, target, amount) {
-    return miner.transfer(target, RESOURCE_ENERGY, amount);
-  },
-
-  refillCreep: function(creep, container, amount) {
-    return creep.withdraw(container, RESOURCE_ENERGY, amount);
-  },
-
   getRoomDevelopmentPlan: function(room) {
     let hasMule = false;
     let hasMiner = false;
