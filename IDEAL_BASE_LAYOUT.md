@@ -28,9 +28,6 @@ T - tower
 
 This leaves 5 links, 10 labs, and 60 extensions remaining
 
-60 extensions
-10 labs
-
        1234567890123
 
  1      /-\./-\./-\
@@ -46,27 +43,3 @@ This leaves 5 links, 10 labs, and 60 extensions remaining
 11     |..\./.\./..|
 12     | ..X...X..o|
 13      \-/.\-/.\-/
-
-To JS 2D array. Each cell has the structure and RCL to build it:
-
-function s(structureType, roomLevel) {
-  return {s: structureType, l: roomLevel};
-}
-
-{s: STRUCTURE_ROAD, l: 2}
-
-BASE_LAYOUT = [
-/*  1 */  [null],
-/*  2 */  [{s: STRUCTURE_ROAD, l:],
-/*  3 */  [],
-/*  4 */  [],
-/*  5 */  [],
-/*  6 */  [],
-/*  7 */  [],
-/*  8 */  [],
-/*  9 */  [],
-/* 10 */  [],
-/* 11 */  [],
-/* 12 */  [],
-/* 13 */  [],
-];

@@ -1,17 +1,16 @@
-const Worker = require('role.Worker');
 const Builder = require('role.Builder');
-const Upgrader = require('role.Upgrader');
-const Spawner = require('role.Spawner');
-const Miner = require('role.Miner');
-const Tower = require('role.tower');
-const RoadPlanner = require('RoadPlanner');
-const ExpansionPlanner = require('ExpansionPlanner');
-const Scout = require('role.Scout');
-const RoomRole = require('role.Room');
-const TaskList = require('TaskList');
 const Claimer = require('role.Claimer');
+const ExpansionPlanner = require('ExpansionPlanner');
+const Miner = require('role.Miner');
 const Mule = require('role.Mule');
 const Profiler = require('Profiler');
+const RoadPlanner = require('RoadPlanner');
+const RoomRole = require('role.Room');
+const Scout = require('role.Scout');
+const Spawner = require('role.Spawner');
+const TaskList = require('TaskList');
+const Tower = require('role.tower');
+const Upgrader = require('role.Upgrader');
 
 require('CreepMixin').run();
 require('mixin.Room').run();
@@ -83,8 +82,8 @@ module.exports.loop = function () {
       }
     }
 
+    // BaseLayout.drawBase(16, 16, 4, true, 'W8N3');
     // RoadPlanner.run();
-
     //    TaskList.report();
   });
 }
