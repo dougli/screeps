@@ -1,8 +1,6 @@
-
 function s(structureType, roomLevel) {
   return {s: structureType, l: roomLevel};
 }
-
 
 const SIZE = 13;
 const BASE_LAYOUT = [

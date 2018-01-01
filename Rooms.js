@@ -2,12 +2,19 @@ const Task = require('Task');
 const Controllers = require('Controllers');
 
 const BUILD_PRIORITY = {
-    [STRUCTURE_SPAWN]: 15,
-    [STRUCTURE_TOWER]: 14,
-    [STRUCTURE_EXTENSION]: 13,
-    [STRUCTURE_RAMPART]: 12,
-    [STRUCTURE_WALL]: 11,
-    [STRUCTURE_ROAD]: 10,
+    [STRUCTURE_TOWER]: 15,
+    [STRUCTURE_EXTENSION]: 14,
+    [STRUCTURE_SPAWN]: 13,
+    [STRUCTURE_STORAGE]: 12,
+    [STRUCTURE_LINK]: 11,
+    [STRUCTURE_OBSERVER]: 10,
+    [STRUCTURE_LAB]: 9,
+    [STRUCTURE_TERMINAL]: 8,
+    [STRUCTURE_NUKER]: 7,
+    [STRUCTURE_RAMPART]: 6,
+    [STRUCTURE_WALL]: 5,
+    [STRUCTURE_ROAD]: 4,
+    [STRUCTURE_POWER_SPAWN]: 3,
 };
 
 class Rooms {

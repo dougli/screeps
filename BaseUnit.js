@@ -1,6 +1,5 @@
-const Task = require('Task');
-const TaskList = require('TaskList');
 const Sources = require('Sources');
+const Task = require('Task');
 
 const DONE = 'DONE';
 const NEED_ENERGY = 'NEED_ENERGY';

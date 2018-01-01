@@ -1,4 +1,8 @@
 class Task {
+  /**
+   * Greater priority numbers means higher priority. i.e. A task with priority
+   * 12 takes precedence over one with priority 10.
+   */
   constructor(type, target, amount = 10000, quantity = 8, priority = 10) {
     if (!type) {
       throw new Error('Missing task type');

@@ -1,6 +1,5 @@
 const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
-const TaskList = require('TaskList');
 const Rooms = require('Rooms');
 
 class Builder extends BaseUnit {
@@ -35,11 +34,11 @@ class Builder extends BaseUnit {
       // Just wait for a mule if we need energy
       return;
     } else if (result === 'DONE') {
-      if (this.creep.tasks.length === 0) {
+      if (!this.hasTask()) {
         // Find another build task
-        this.creep.tasks.push(TaskList.getBuildTask(this.creep));
-        if (this.creep.tasks[0]) {
-          this.creep.moveToWithTrail(this.creep.tasks[0].target);
+        this.setTask(Rooms.getBuildTasks(this.getRoom())[0]);
+        if (this.hasTask()) {
+          this.creep.moveToWithTrail(this.getCurrentTask().target);
         }
       }
     }

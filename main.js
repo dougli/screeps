@@ -5,13 +5,10 @@ const Miner = require('role.Miner');
 const Mule = require('role.Mule');
 const Profiler = require('Profiler');
 const RoadPlanner = require('RoadPlanner');
-const RoomRole = require('role.Room');
 const Scout = require('role.Scout');
 const Spawner = require('role.Spawner');
-const TaskList = require('TaskList');
 const Tower = require('role.tower');
 const Upgrader = require('role.Upgrader');
-const BaseLayout = require('BaseLayout');
 
 require('CreepMixin').run();
 require('mixin.Room').run();
@@ -26,7 +23,7 @@ module.exports.loop = function () {
         delete Memory.creeps[i];
       }
     }
-    TaskList.reset();
+
     // Initialize rooms
     for (var id in Game.rooms) {
       RoomRole.run(Game.rooms[id]);
@@ -56,11 +53,7 @@ module.exports.loop = function () {
       default:
         console.log('Unknown creep role ' + creep.memory.role);
       }
-
-      TaskList.decrementCreepTasks(Game.creeps[name]);
     }
-
-    TaskList.sort();
 
     for (let id in Game.rooms) {
       ExpansionPlanner.run();
@@ -83,8 +76,6 @@ module.exports.loop = function () {
       }
     }
 
-    BaseLayout.drawBase(16, 16, 8, true, 'W8N3');
     // RoadPlanner.run();
-    // TaskList.report();
   });
 }
