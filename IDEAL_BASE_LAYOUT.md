@@ -45,11 +45,11 @@ This leaves 5 links, 10 labs, and 60 extensions remaining
 13      \-/.\-/.\-/
 
 6 towers  3,5,7,8*
-1 terminal
+1 terminal 6
 1 storage 4
 3 spawns 7,8
 1 power spawn 8
-1 observer
-1 nuker
+1 observer 8
+1 nuker 8
 6 links 5,5,6,7,8* (1 core)
 10 labs 3@6, 6@7, 10@8

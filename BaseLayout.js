@@ -10,7 +10,7 @@ const BASE_LAYOUT = [
 /*  2 */  [null, null, null, null, s(STRUCTURE_ROAD, 6)],
 /*  3 */  [null, null, null, s(STRUCTURE_ROAD, 6), null, s(STRUCTURE_ROAD, 6)],
 /*  4 */  [null, null, s(STRUCTURE_ROAD, 6), s(STRUCTURE_LAB, 6), s(STRUCTURE_LAB, 6), s(STRUCTURE_EXTENSION, 6), s(STRUCTURE_ROAD, 6)],
-/*  5 */  [s(STRUCTURE_EXTENSION, 6), s(STRUCTURE_ROAD, 6), null, s(STRUCTURE_LAB, 6), null, s(STRUCTURE_ROAD, 6)],
+/*  5 */  [s(STRUCTURE_EXTENSION, 6), s(STRUCTURE_ROAD, 6), null, s(STRUCTURE_LAB, 6), s(STRUCTURE_TERMINAL, 6), s(STRUCTURE_ROAD, 6)],
 /*  6 */  [null, s(STRUCTURE_EXTENSION, 6), s(STRUCTURE_ROAD, 6), null, s(STRUCTURE_ROAD, 5), null, null, null, null, s(STRUCTURE_EXTENSION, 6)],
 /*  7 */  [null, s(STRUCTURE_EXTENSION, 3), s(STRUCTURE_EXTENSION, 3), s(STRUCTURE_ROAD, 3), s(STRUCTURE_LINK, 5), s(STRUCTURE_ROAD, 3), s(STRUCTURE_STORAGE, 4), null, null, s(STRUCTURE_ROAD, 5), s(STRUCTURE_EXTENSION, 6), s(STRUCTURE_EXTENSION, 6)],
 /*  8 */  [null, s(STRUCTURE_EXTENSION, 3), s(STRUCTURE_ROAD, 3), s(STRUCTURE_TOWER, 3), s(STRUCTURE_ROAD, 3), s(STRUCTURE_SPAWN, 1), s(STRUCTURE_ROAD, 3), s(STRUCTURE_SPAWN, 8), s(STRUCTURE_ROAD, 5), s(STRUCTURE_TOWER, 7), s(STRUCTURE_ROAD, 5), s(STRUCTURE_EXTENSION, 6)],
@@ -111,13 +111,16 @@ class BaseLayout {
         vis.text('T', site.x, site.y + 0.25);
         break;
       case STRUCTURE_STORAGE:
-        vis.text('S', site.x, site.y + 0.25);
+        vis.text('\uD83C\uDFE7', site.x, site.y + 0.3);
         break;
       case STRUCTURE_LINK:
         vis.text('L', site.x, site.y + 0.25);
         break;
       case STRUCTURE_LAB:
         vis.text('\u2697', site.x, site.y + 0.3);
+        break;
+      case STRUCTURE_TERMINAL:
+        vis.text('\uD83D\uDCBB', site.x, site.y + 0.3);
         break;
       case STRUCTURE_ROAD:
         for (let offsetX = site.x - 1; offsetX <= site.x + 1; offsetX++) {
