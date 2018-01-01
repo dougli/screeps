@@ -1,6 +1,5 @@
 const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
-const Worker = require('role.Worker');
 const Task = require('Task');
 const Rooms = require('Rooms');
 const Profiler = require('Profiler');

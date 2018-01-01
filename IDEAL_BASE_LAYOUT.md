@@ -31,7 +31,7 @@ This leaves 5 links, 10 labs, and 60 extensions remaining
        1234567890123
 
  1      /-\./-\./-\
- 2     | llX...X.. |
+ 2     |ollX...X.. |
  3     |ll/l\./.\..|
  4     \l/ll.-...\./
  5     .|llt/p\...|.
@@ -41,7 +41,7 @@ This leaves 5 links, 10 labs, and 60 extensions remaining
  9     .|..T\s/T..|.
 10     /.\...X.../.\
 11     |..\./.\./..|
-12     | ..X...X..o|
+12     | ..X...X.. |
 13      \-/.\-/.\-/
 
 6 towers  3,5,7,8*
