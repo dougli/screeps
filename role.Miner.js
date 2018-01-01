@@ -7,6 +7,8 @@ const Profiler = require('Profiler');
 
 class Miner extends BaseUnit {
   static getIdealBuild(capacity) {
+    // Miners need 6 work parts instead of just 5 because it spends some time
+    // repairing containers and/or walking
     return BuildCosts.getBestBuild(
       [MOVE, CARRY, WORK, WORK, WORK, WORK, MOVE, WORK, WORK],
       capacity);
