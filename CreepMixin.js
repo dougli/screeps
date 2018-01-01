@@ -1,4 +1,3 @@
-var RoadPlanner = require('RoadPlanner');
 var Task = require('Task');
 
 var MAX_REUSE_PATH = 10;
@@ -11,7 +10,6 @@ module.exports = {
       }
       opts.reusePath = opts.reusePath || MAX_REUSE_PATH;
       this.moveTo(target, opts);
-      RoadPlanner.addPheromones(this);
     };
 
     Creep.prototype.getType = function() {

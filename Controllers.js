@@ -1,3 +1,5 @@
+const MUST_REPAIR_CONTAINER = 200000;
+
 class Controllers {
   static _getMemory(room) {
     if (!(room instanceof Room)) {
@@ -95,6 +97,19 @@ class Controllers {
 
     Controllers._createContainerSiteForAt(controller, pos.x, pos.y);
     return null;
+  }
+
+  static mustPrioritizeUpgrade(controller) {
+    if (!controller || !controller.my) {
+      return false;
+    }
+
+    if (controller.ticksToDowngrade <= 2000) {
+      return true;
+    }
+
+    const container = Controllers.getContainerFor(controller);
+    return (container && container.hits < MUST_REPAIR_CONTAINER);
   }
 
   static _createContainerSiteForAt(controller, x, y) {

@@ -161,8 +161,10 @@ class BaseUnit {
     case OK:
       if (amount >= currentEnergy) {
         return NEED_ENERGY;
-      } else if (target instanceof Creep && target.memory.role == 'upgrader')  {
+      } else if (target instanceof Creep && target.memory.role == 'upgrader') {
         return OK;
+      } else if (target instanceof Creep && target.memory.role == 'builder') {
+        return target.tasks[0] ? OK : DONE;
       } else {
         return DONE;
       }

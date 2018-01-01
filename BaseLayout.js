@@ -1,5 +1,21 @@
 const Profiler = require('Profiler');
 
+const BUILD_PRIORITY = {
+  [STRUCTURE_TOWER]: 15,
+  [STRUCTURE_EXTENSION]: 14,
+  [STRUCTURE_SPAWN]: 13,
+  [STRUCTURE_STORAGE]: 12,
+  [STRUCTURE_LINK]: 11,
+  [STRUCTURE_OBSERVER]: 10,
+  [STRUCTURE_LAB]: 9,
+  [STRUCTURE_TERMINAL]: 8,
+  [STRUCTURE_NUKER]: 7,
+  [STRUCTURE_RAMPART]: 6,
+  [STRUCTURE_WALL]: 5,
+  [STRUCTURE_ROAD]: 4,
+  [STRUCTURE_POWER_SPAWN]: 3,
+};
+
 function s(structureType, roomLevel) {
   return {s: structureType, l: roomLevel};
 }
@@ -22,15 +38,19 @@ const BASE_LAYOUT = [
 ];
 
 class BaseLayout {
-  static placeConstructionSites(room) {
+  static getPriorityMap() {
+    return BUILD_PRIORITY;
+  }
+
+  static getConstructionPlans(room) {
     if (!room || !room.controller || !room.controller.my) {
-      return null;
+      return [];
     }
 
     const level = room.controller.level;
     const pos = BaseLayout.getBasePos(room);
     if (!pos) {
-      return null;
+      return [];
     }
 
     const structures = room.lookForAtArea(
@@ -40,18 +60,12 @@ class BaseLayout {
       LOOK_CONSTRUCTION_SITES, pos.y, pos.x, pos.y + SIZE - 1, pos.x + SIZE - 1
     );
 
-    const plans = BaseLayout.getBasePlans(pos.x, pos.y, level, true);
-    for (const plan of plans) {
-      const structure = (structures[plan.y][plan.x] || [])[0];
-      const site = (sites[plan.y][plan.x] || [])[0];
-
-      if (!structure && !site) {
-        const result = room.createConstructionSite(plan.x, plan.y, plan.type);
-        if (result !== OK) {
-          Game.notify('Err ' + result + ': Failed to build base', 1440);
-        }
-      }
-    }
+    return BaseLayout.getBasePlans(pos.x, pos.y, level, true)
+      .filter((plan) => {
+        const structure = (structures[plan.y][plan.x] || [])[0];
+        const site = (sites[plan.y][plan.x] || [])[0];
+        return !structure && !site;
+      }).sort((a, b) => BUILD_PRIORITY[b.type] - BUILD_PRIORITY[a.type]);
   }
 
   static getBasePos(room) {

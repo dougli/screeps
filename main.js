@@ -4,7 +4,6 @@ const ExpansionPlanner = require('ExpansionPlanner');
 const Miner = require('role.Miner');
 const Mule = require('role.Mule');
 const Profiler = require('Profiler');
-const RoadPlanner = require('RoadPlanner');
 const Scout = require('role.Scout');
 const Spawner = require('role.Spawner');
 const Tower = require('role.tower');

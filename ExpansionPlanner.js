@@ -1,8 +1,9 @@
 const BaseLayout = require('BaseLayout');
 const Controllers = require('Controllers');
+const Paths = require('Paths');
+const Profiler = require('Profiler');
 const Rooms = require('Rooms');
 const Sources = require('Sources');
-const Profiler = require('Profiler');
 
 var OPPOSITE_DIR = {};
 OPPOSITE_DIR[LEFT] = RIGHT;
@@ -10,6 +11,7 @@ OPPOSITE_DIR[RIGHT] = LEFT;
 OPPOSITE_DIR[TOP] = BOTTOM;
 OPPOSITE_DIR[BOTTOM] = TOP;
 
+const MAX_SITES_PER_ROOM = 2;
 var EXPLORE_PING = 1000;
 var HOSTILE_EXPLORE_PING = 6000;
 var MIN_RESERVATION = 4000;
@@ -118,8 +120,7 @@ var ExpansionPlanner = {
     }
 
     // Then, check if we have something upgrading the room
-    if (room.controller &&
-        (!hasBuildSites || room.controller.ticksToDowngrade < 2000) &&
+    if (Controllers.mustPrioritizeUpgrade(room.controller) &&
         Controllers.getUpgradeSpeed(room.controller) == 0) {
       return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
     }
@@ -135,25 +136,12 @@ var ExpansionPlanner = {
     }
 
     // Then, fully expand out upgrade speed
-    if (Rooms.getBuildTasks(room).length == 0 &&
+    if (room.controller &&
+        !hasBuildSites &&
         Controllers.getContainerFor(room.controller) &&
         energyPerTick - Controllers.getUpgradeSpeed(room.controller) > 2) {
       return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
     }
-
-    // Check other rooms for sources too
-    // if (room.controller &&
-    //     room.controller.my &&
-    //     room.controller.level >= 3 &&
-    //     room.energyCapacityAvailable >= 800) {
-    //   const exits = Game.map.describeExits(room.name);
-    //   for (let dir in exits) {
-    //     if (!ExpansionPlanner.wasRoomHostile(exits[dir])) {
-    //       roomsToCheck.push(exits[dir]);
-    //     }
-    //   }
-    // }
-
 
     // if (room.controller.level >= 4) {
     //   var candidates = ExpansionPlanner.getScoutCandidates(room.name);
@@ -227,7 +215,7 @@ var ExpansionPlanner = {
 
     if (!room.controller || !room.controller.my) {
       Object.assign(memory, ExpansionPlanner._getLiveStats(room));
-    } else if (now % 1 === 0) {
+    } else if (now % 10 === 0) {
       ExpansionPlanner.buildBase(room);
     }
 
@@ -235,23 +223,60 @@ var ExpansionPlanner = {
   },
 
   buildBase: function(room) {
-    // Plan structures and buildings
-    BaseLayout.placeConstructionSites(room);
+    const sites = room.find(FIND_MY_CONSTRUCTION_SITES);
+    let numToBuild = MAX_SITES_PER_ROOM - sites.length;
+    if (numToBuild <= 0) {
+      return;
+    }
+
+    // First, fully build out the base at the current level
+    let plans = BaseLayout.getConstructionPlans(room);
+    if (ExpansionPlanner._buildPlans(room, plans, numToBuild)) {
+      return;
+    }
+
+    // Load any roads we're trying to build and construct those
+    plans = room.memory.roadPlan;
+    if (ExpansionPlanner._buildPlans(room, plans, numToBuild)) {
+      return;
+    } else {
+      delete room.memory.roadPlan;
+    }
 
     // Place a road between the base and the controller
     const center = BaseLayout.getBaseCenter(room);
-    if (room.controller.level >= 4 && center) {
-      const result = PathFinder.search(
-        room.controller.pos,
-        {pos: room.getPositionAt(center.x, center.y), range: 7}
+    const container = Controllers.getContainerFor(room.controller);
+    if (room.controller.level >= 4 && center && container) {
+      const result = Paths.search(
+        container.pos,
+        {pos: room.getPositionAt(center.x, center.y), range: 3},
+        {ignoreCreeps: true}
       );
 
-      let prev = null;
-      for (const pos of result.path) {
-        prev && room.visual.line(prev.x, prev.y, pos.x, pos.y, {lineStyle: 'dashed'});
-        prev = pos;
+      const roadPlan = result.path.map((pos) => {
+        return {x: pos.x, y: pos.y, type: STRUCTURE_ROAD};
+      });
+      room.memory.roadPlan = roadPlan;
+      if (ExpansionPlanner._buildPlans(room, roadPlan, numToBuild)) {
+        return;
       }
     }
+  },
+
+  _buildPlans: function(room, plans, numToBuild) {
+    if (!plans) {
+      return false;
+    }
+
+    for (const plan of plans) {
+      if (room.createConstructionSite(plan.x, plan.y, plan.type) === OK) {
+        numToBuild--;
+        if (numToBuild <= 0) {
+          break;
+        }
+      }
+    }
+    return plans.length > 0;
   },
 
   _getLiveStats: function(room) {

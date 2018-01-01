@@ -1,21 +1,6 @@
 const Task = require('Task');
 const Controllers = require('Controllers');
-
-const BUILD_PRIORITY = {
-    [STRUCTURE_TOWER]: 15,
-    [STRUCTURE_EXTENSION]: 14,
-    [STRUCTURE_SPAWN]: 13,
-    [STRUCTURE_STORAGE]: 12,
-    [STRUCTURE_LINK]: 11,
-    [STRUCTURE_OBSERVER]: 10,
-    [STRUCTURE_LAB]: 9,
-    [STRUCTURE_TERMINAL]: 8,
-    [STRUCTURE_NUKER]: 7,
-    [STRUCTURE_RAMPART]: 6,
-    [STRUCTURE_WALL]: 5,
-    [STRUCTURE_ROAD]: 4,
-    [STRUCTURE_POWER_SPAWN]: 3,
-};
+const BaseLayout = require('BaseLayout');
 
 class Rooms {
   static getBuilderFor(room) {
@@ -26,9 +11,10 @@ class Rooms {
     const result = [];
 
     var sites = room.find(FIND_CONSTRUCTION_SITES);
+    const priorities = BaseLayout.getPriorityMap();
     sites.forEach(function(site) {
       var amount = site.progressTotal - site.progress;
-      var priority = BUILD_PRIORITY[site.structureType];
+      var priority = priorities[site.structureType];
       if (priority) {
         result.push(new Task(Task.BUILD, site, amount, 1, priority));
       }
@@ -62,8 +48,9 @@ class Rooms {
     return result;
   }
 
-  static getDropoffTasks(room) {
-    const result = [];
+  static getDropoffTasks(creep) {
+    let result = [];
+    const room = creep.room;
 
     // First, prioritize structures that need juice
     var structures = room.find(FIND_MY_STRUCTURES);
@@ -74,11 +61,17 @@ class Rooms {
       }
     });
     if (result.length > 0) {
+      const pos = creep.pos;
+      result = result.sort((a, b) => {
+        const distA = pos.getRangeTo(a.target);
+        const distB = pos.getRangeTo(b.target);
+        return distA - distB;
+      });
       return result;
     }
 
     // Then, prioritize builders
-    if (!room.controller || room.controller.ticksToDowngrade > 2000) {
+    if (!Controllers.mustPrioritizeUpgrade(room.controller)) {
       const builder = Rooms.getBuilderFor(room);
       if (builder && builder.hasTask()) {
         return [new Task(Task.TRANSFER, builder.creep, 1000)];

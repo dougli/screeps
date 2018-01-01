@@ -39,7 +39,7 @@ class Mule extends BaseUnit {
         );
       } else {
         // Find a dropoff task
-        this.setTask(Rooms.getDropoffTasks(creep.room)[0]);
+        this.setTask(Rooms.getDropoffTasks(this.creep)[0]);
       }
     }
 
@@ -52,11 +52,7 @@ class Mule extends BaseUnit {
       );
       this.creep.moveToWithTrail(this.getHaulSource());
     } else if (result == 'DONE') {
-      // Find a dropoff task
-      this.setTask(Rooms.getDropoffTasks(creep.room)[0]);
-      if (this.hasTask()) {
-        this.creep.moveToWithTrail(this.getCurrentTask().target);
-      }
+      // Do nothing - wait another turn
     }
   }
 }

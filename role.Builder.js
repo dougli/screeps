@@ -35,8 +35,9 @@ class Builder extends BaseUnit {
       return;
     } else if (result === 'DONE') {
       if (!this.hasTask()) {
-        // Find another build task
-        this.setTask(Rooms.getBuildTasks(this.getRoom())[0]);
+        // Find another build task -- we don't take the first task as it's the
+        // one that was completed
+        this.setTask(Rooms.getBuildTasks(this.getRoom())[1]);
         if (this.hasTask()) {
           this.creep.moveToWithTrail(this.getCurrentTask().target);
         }
