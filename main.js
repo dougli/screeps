@@ -11,7 +11,7 @@ const Spawner = require('role.Spawner');
 const TaskList = require('TaskList');
 const Tower = require('role.tower');
 const Upgrader = require('role.Upgrader');
-// const BaseLayout = require('BaseLayout');
+const BaseLayout = require('BaseLayout');
 
 require('CreepMixin').run();
 require('mixin.Room').run();
@@ -83,7 +83,7 @@ module.exports.loop = function () {
       }
     }
 
-    // BaseLayout.drawBase(16, 16, 5, true, 'W8N3');
+    BaseLayout.drawBase(16, 16, 6, true, 'W8N3');
     // RoadPlanner.run();
     // TaskList.report();
   });

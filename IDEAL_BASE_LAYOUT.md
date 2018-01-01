@@ -52,3 +52,4 @@ This leaves 5 links, 10 labs, and 60 extensions remaining
 1 observer
 1 nuker
 6 links 5,5,6,7,8* (1 core)
+10 labs 3@6, 6@7, 10@8
