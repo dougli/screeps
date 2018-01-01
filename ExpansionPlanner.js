@@ -222,6 +222,7 @@ var ExpansionPlanner = {
   },
 
   run: function(room) {
+    const now = Game.time;
     var memory = ExpansionPlanner.getRoomMemory(room);
 
     if (!room.controller || !room.controller.my) {
