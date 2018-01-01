@@ -239,8 +239,8 @@ var ExpansionPlanner = {
     BaseLayout.placeConstructionSites(room);
 
     // Place a road between the base and the controller
-    if (room.controller.level >= 4) {
-      const center = BaseLayout.getBaseCenter(room);
+    const center = BaseLayout.getBaseCenter(room);
+    if (room.controller.level >= 4 && center) {
       const result = PathFinder.search(
         room.controller.pos,
         {pos: room.getPositionAt(center.x, center.y), range: 7}
