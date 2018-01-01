@@ -24,11 +24,6 @@ module.exports.loop = function () {
       }
     }
 
-    // Initialize rooms
-    for (var id in Game.rooms) {
-      RoomRole.run(Game.rooms[id]);
-    }
-
     // Initialize units
     const units = [];
     for (var name in Game.creeps) {
