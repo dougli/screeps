@@ -87,7 +87,7 @@ class Miner extends BaseUnit {
     }
 
     // 4. Build container
-    if (!container && creep.carry.energy > 0) {
+    if (!container && !canCarryMore) {
       const site = Sources.getContainerSiteFor(source);
       site && creep.build(site);
     }

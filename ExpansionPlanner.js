@@ -1,6 +1,8 @@
-const Sources = require('Sources');
-const Rooms = require('Rooms');
+const BaseLayout = require('BaseLayout');
 const Controllers = require('Controllers');
+const Rooms = require('Rooms');
+const Sources = require('Sources');
+const Profiler = require('Profiler');
 
 var OPPOSITE_DIR = {};
 OPPOSITE_DIR[LEFT] = RIGHT;
@@ -195,13 +197,9 @@ var ExpansionPlanner = {
       return room.memory;
     }
 
-    const sources = {};
     room.find(FIND_SOURCES).sort((a, b) => {
       return a.id < b.id ? -1 : 1;
-    }).forEach((source) => {
-      sources[source.id] = {};
-    });
-    room.memory.sources = sources;
+    }).forEach((source) => Sources.getMemoryFor(source));
 
     // Configure exits
     var exits = Game.map.describeExits(room.name);
@@ -223,19 +221,17 @@ var ExpansionPlanner = {
     return room.memory;
   },
 
-  run: function() {
-    var now = Game.time;
-    for (var name in Game.rooms) {
-      var room = Game.rooms[name];
-      var memory = ExpansionPlanner.getRoomMemory(room);
+  run: function(room) {
+    var memory = ExpansionPlanner.getRoomMemory(room);
 
-
-      if (!room.controller || !room.controller.my) {
-        Object.assign(memory, ExpansionPlanner._getLiveStats(room));
-      }
-
-      memory.lastSeen = now;
+    if (!room.controller || !room.controller.my) {
+      Object.assign(memory, ExpansionPlanner._getLiveStats(room));
+    } else if (Game.time % 10 === 0) {
+      // Plan structures and buildings
+      BaseLayout.placeConstructionSites(room);
     }
+
+    memory.lastSeen = now;
   },
 
   _getLiveStats: function(room) {
@@ -269,4 +265,7 @@ var ExpansionPlanner = {
     };
   },
 }
+
+Profiler.registerObject(ExpansionPlanner, 'ExpansionPlanner');
+
 module.exports = ExpansionPlanner;

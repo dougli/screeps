@@ -1,10 +1,12 @@
+const Profiler = require('Profiler');
+
 function s(structureType, roomLevel) {
   return {s: structureType, l: roomLevel};
 }
 
 const SIZE = 13;
 const BASE_LAYOUT = [
-  /*  1 */  [null, s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_EXTENSION, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_EXTENSION, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 8)],
+/*  1 */  [null, s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_EXTENSION, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_EXTENSION, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 8)],
 /*  2 */  [s(STRUCTURE_ROAD, 8), s(STRUCTURE_OBSERVER, 8), s(STRUCTURE_LAB, 8), s(STRUCTURE_LAB, 8), s(STRUCTURE_ROAD, 6), s(STRUCTURE_EXTENSION, 8), s(STRUCTURE_EXTENSION, 8), s(STRUCTURE_EXTENSION, 8), s(STRUCTURE_ROAD, 7), s(STRUCTURE_EXTENSION, 8), s(STRUCTURE_EXTENSION, 8), null, s(STRUCTURE_ROAD, 8)],
 /*  3 */  [s(STRUCTURE_ROAD, 8), s(STRUCTURE_LAB, 8), s(STRUCTURE_LAB, 7), s(STRUCTURE_ROAD, 6), s(STRUCTURE_LAB, 7), s(STRUCTURE_ROAD, 6), s(STRUCTURE_EXTENSION, 7), s(STRUCTURE_ROAD, 7), s(STRUCTURE_EXTENSION, 7), s(STRUCTURE_ROAD, 7), s(STRUCTURE_EXTENSION, 8), s(STRUCTURE_EXTENSION, 8), s(STRUCTURE_ROAD, 8)],
 /*  4 */  [s(STRUCTURE_ROAD, 8), s(STRUCTURE_LAB, 8), s(STRUCTURE_ROAD, 6), s(STRUCTURE_LAB, 6), s(STRUCTURE_LAB, 6), s(STRUCTURE_EXTENSION, 6), s(STRUCTURE_ROAD, 6), s(STRUCTURE_EXTENSION, 7), s(STRUCTURE_EXTENSION, 7), s(STRUCTURE_EXTENSION, 7), s(STRUCTURE_ROAD, 7), s(STRUCTURE_EXTENSION, 8), s(STRUCTURE_ROAD, 8)],
@@ -20,17 +22,82 @@ const BASE_LAYOUT = [
 ];
 
 class BaseLayout {
-  static getStructureAt(x, y) {
-    const arr = BASE_LAYOUT[x];
-    return (arr && arr[y] && arr[y].s) || null;
-  }
-
-  static getUnbuiltStructures(room) {
-    if (!room || !room.controller) {
+  static placeConstructionSites(room) {
+    if (!room || !room.controller || !room.controller.my) {
       return null;
+    }
+
+    const level = room.controller.level;
+    const pos = BaseLayout.getBasePos(room);
+    if (!pos) {
+      return null;
+    }
+
+    const structures = room.lookForAtArea(
+      LOOK_STRUCTURES, pos.y, pos.x, pos.y + SIZE - 1, pos.x + SIZE - 1
+    );
+    const sites = room.lookForAtArea(
+      LOOK_CONSTRUCTION_SITES, pos.y, pos.x, pos.y + SIZE - 1, pos.x + SIZE - 1
+    );
+
+    const plans = BaseLayout.getBasePlans(pos.x, pos.y, level, true);
+    for (const plan of plans) {
+      const structure = (structures[plan.y][plan.x] || [])[0];
+      const site = (sites[plan.y][plan.x] || [])[0];
+
+      if (!structure && !site) {
+        const result = room.createConstructionSite(plan.x, plan.y, plan.type);
+        if (result !== OK) {
+          Game.notify('Err ' + result + ': Failed to build base', 1440);
+        }
+      }
     }
   }
 
+  static getBasePos(room) {
+    if (room.memory.basePos) {
+      return room.memory.basePos;
+    }
+
+    const terrain = room.lookForAtArea(LOOK_TERRAIN, 0, 0, 49, 49);
+
+    const spawns = room.find(FIND_MY_SPAWNS);
+    if (spawns.length === 1) {
+      const spawnPos = spawns[0].pos;
+      if (BaseLayout._canBaseFit(terrain, spawnPos.x - 5, spawnPos.y - 7)) {
+        room.memory.basePos = {x: spawnPos.x - 5, y: spawnPos.y - 7};
+        return room.memory.basePos;
+      } else {
+        room.memory.basePos = null;
+        return room.memory.basePos;
+      }
+    }
+
+    // TODO: Implement me -- auto find best base location for expansions
+    return null;
+  }
+
+  static _canBaseFit(terrain, x, y) {
+    // The base musn't be touching the edges of the map
+    if (x <= 0 || y <= 0 || x + SIZE >= 50 || y + SIZE >= 50) {
+      return false;
+    }
+
+    for (let ii = 0; ii < SIZE; ii++) {
+      for (let jj = 0; jj < SIZE; jj++) {
+        if (terrain[y + ii][x + jj][0] === 'wall') {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Used for debugging & testing, spits out what structures to build at each
+   * level
+   */
   static getBuildingsByLevel() {
     const levels = [{}, {}, {}, {}, {}, {}, {}, {}];
 
@@ -47,49 +114,37 @@ class BaseLayout {
   }
 
   /**
-   * Given a room level, returns all the structures to that level should build
-   * and all the offsets from the top left in x, y coordinates.
+   * Given an RCL and xy-coordinates, returns a list of plans for where
+   * structures should be.
    */
-  static getStructuresForLevel(level, includePrevious) {
-    const result = [];
-    for (let [y, arr] of BASE_LAYOUT.entries()) {
-      for (let [x, struct] of arr.entries()) {
+  static getBasePlans(x, y, level, includePrevious) {
+    const plans = [];
+    for (let [iy, arr] of BASE_LAYOUT.entries()) {
+      for (let [ix, struct] of arr.entries()) {
         if (!struct) {
           continue;
         }
 
         if ((includePrevious && struct.l <= level) ||
             (!includePrevious && struct.l === level)) {
-          result.push({x, y, type: struct.s});
+          plans.push({x: x + ix, y: y + iy, type: struct.s});
         }
       }
     }
 
-    return result;
+    return plans;
   }
 
-  static getConstructionSites(centerX, centerY, level, includePrevious) {
-    const sites = BaseLayout.getStructuresForLevel(level, includePrevious);
-    const offset = Math.floor((SIZE - 1) / 2);
-    for (const site of sites) {
-      site.x += centerX - offset;
-      site.y += centerY - offset;
-    }
-    return sites;
-  }
-
-  static drawBase(centerX, centerY, level, includePrevious, roomName) {
+  static drawBase(x, y, level, includePrevious, roomName) {
     // Test by using RoomVisual
     // First, get all the structures to place at that level
-    const sites = BaseLayout.getConstructionSites(
-      centerX, centerY, level, includePrevious);
-    const offset = Math.floor((SIZE - 1) / 2);
+    const sites = BaseLayout.getBasePlans(x, y, level, includePrevious);
 
     const vis = new RoomVisual(roomName);
     // Draw the bounding box around the whole base
     vis.rect(
-      centerX - offset - 0.5,
-      centerY - offset - 0.5,
+      x - 0.5,
+      y - 0.5,
       SIZE,
       SIZE,
       {fill: null, stroke: '#ffffff'}
@@ -143,5 +198,7 @@ class BaseLayout {
     }
   }
 }
+
+Profiler.registerClass(BaseLayout, 'BaseLayout');
 
 module.exports = BaseLayout;
