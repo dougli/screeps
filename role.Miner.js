@@ -8,7 +8,7 @@ const Profiler = require('Profiler');
 class Miner extends BaseUnit {
   static getIdealBuild(capacity) {
     return BuildCosts.getBestBuild(
-      [MOVE, CARRY, WORK, WORK, WORK, WORK, WORK],
+      [MOVE, CARRY, WORK, WORK, WORK, WORK, MOVE, WORK, WORK],
       capacity);
   }
 
