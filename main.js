@@ -83,7 +83,7 @@ module.exports.loop = function () {
       }
     }
 
-    BaseLayout.drawBase(16, 16, 6, true, 'W8N3');
+    BaseLayout.drawBase(16, 16, 7, true, 'W8N3');
     // RoadPlanner.run();
     // TaskList.report();
   });
