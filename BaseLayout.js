@@ -94,7 +94,7 @@ class BaseLayout {
   static getBaseCenter(room) {
     const pos = BaseLayout.getBasePos(room);
     if (pos) {
-      return {x: pos.x + (SIZE - 1) / 2, y: pos.y + (SIZE - 1) / 2};
+      return room.getPositionAt(pos.x + (SIZE - 1) / 2, pos.y + (SIZE - 1) / 2);
     }
     return null;
   }

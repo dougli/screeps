@@ -247,20 +247,34 @@ var ExpansionPlanner = {
     const center = BaseLayout.getBaseCenter(room);
     const container = Controllers.getContainerFor(room.controller);
     if (room.controller.level >= 4 && center && container) {
-      const result = Paths.search(
-        container.pos,
-        {pos: room.getPositionAt(center.x, center.y), range: 3},
-        {ignoreCreeps: true}
-      );
-
-      const roadPlan = result.path.map((pos) => {
-        return {x: pos.x, y: pos.y, type: STRUCTURE_ROAD};
-      });
-      room.memory.roadPlan = roadPlan;
-      if (ExpansionPlanner._buildPlans(room, roadPlan, numToBuild)) {
+      if (ExpansionPlanner._buildRoad(container.pos, {pos: center, range: 3})) {
         return;
       }
     }
+
+    // TODO: Place a road between the source and controller
+  },
+
+  _buildRoad: function(origin, goal) {
+    const result = Paths.search(origin, goal, {ignoreCreeps: true});
+    const roadPlan = result.path.map((pos) => {
+      return {x: pos.x, y: pos.y, type: STRUCTURE_ROAD};
+    });
+    const structures = room.lookForAtArea(LOOK_STRUCTURES, 0, 0, 49, 49);
+
+    let shouldBuild = false;
+    for (const plan of roadPlan) {
+      if (!structures[plan.y][plan.x]) {
+        shouldBuild = true;
+        break;
+      }
+    }
+    if (!shouldBuild) {
+      return false;
+    }
+
+    room.memory.roadPlan = roadPlan;
+    return ExpansionPlanner._buildPlans(room, roadPlan, MAX_SITES_PER_ROOM);
   },
 
   _buildPlans: function(room, plans, numToBuild) {
