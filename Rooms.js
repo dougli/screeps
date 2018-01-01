@@ -37,6 +37,31 @@ class Rooms {
     return result.sort(Task.compare);
   }
 
+  static getRepairTasks(room) {
+    if (!room.controller || !room.controller.my) {
+      return [];
+    }
+
+    const result = [];
+    const structures = room.find(FIND_STRUCTURES);
+    for (const structure of structures) {
+      const amount = structure.hitsMax - structure.hits;
+      if (amount === 0) {
+        continue;
+      }
+
+      if (structure.my) {
+        result.push(new Task(Task.REPAIR, structure, amount));
+      } else if (structure.structureType === STRUCTURE_ROAD) {
+        if (amount >= 1000) {
+          result.push(new Task(Task.REPAIR, structure, amount));
+        }
+      }
+    }
+
+    return result;
+  }
+
   static getDropoffTasks(room) {
     const result = [];
 

@@ -63,14 +63,11 @@ module.exports.loop = function () {
       unit.creep.save();
     });
 
-
     for (var name in Game.structures) {
       var structure = Game.structures[name];
       if (structure.structureType === STRUCTURE_TOWER) {
-        Tower.tick(structure);
+        new Tower(structure).run();
       }
     }
-
-    // RoadPlanner.run();
   });
 }

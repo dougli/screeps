@@ -227,12 +227,31 @@ var ExpansionPlanner = {
 
     if (!room.controller || !room.controller.my) {
       Object.assign(memory, ExpansionPlanner._getLiveStats(room));
-    } else if (Game.time % 10 === 0) {
-      // Plan structures and buildings
-      BaseLayout.placeConstructionSites(room);
+    } else if (now % 1 === 0) {
+      ExpansionPlanner.buildBase(room);
     }
 
     memory.lastSeen = now;
+  },
+
+  buildBase: function(room) {
+    // Plan structures and buildings
+    BaseLayout.placeConstructionSites(room);
+
+    // Place a road between the base and the controller
+    if (room.controller.level >= 4) {
+      const center = BaseLayout.getBaseCenter(room);
+      const result = PathFinder.search(
+        room.controller.pos,
+        {pos: room.getPositionAt(center.x, center.y), range: 7}
+      );
+
+      let prev = null;
+      for (const pos of result.path) {
+        prev && room.visual.line(prev.x, prev.y, pos.x, pos.y, {lineStyle: 'dashed'});
+        prev = pos;
+      }
+    }
   },
 
   _getLiveStats: function(room) {
