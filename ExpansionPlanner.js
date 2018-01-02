@@ -256,7 +256,7 @@ var ExpansionPlanner = {
   },
 
   _buildRoad: function(origin, goal) {
-    const room = origin.room;
+    const room = Game.rooms[origin.roomName];
     const result = Paths.search(origin, goal, {ignoreCreeps: true});
     const roadPlan = result.path.map((pos) => {
       return {x: pos.x, y: pos.y, type: STRUCTURE_ROAD};
