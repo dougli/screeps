@@ -44,8 +44,12 @@ class Sources {
   /**
    * Returns Miner creeps assigned to this source.
    */
-  static getMinersFor(source) {
-    return (source.miners || []);
+  static getMinersFor(source, ignoreDyingCreeps) {
+    let result = (source.miners || []);
+    if (ignoreDyingCreeps) {
+      result = result.filter((miner) => !miner.isDyingSoon());
+    }
+    return result;
   }
 
   static getEnergyPerTick(source) {

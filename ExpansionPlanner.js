@@ -87,7 +87,7 @@ var ExpansionPlanner = {
 
     for (let source of sources) {
       energyPerTick += Sources.getEnergyPerTick(source);
-      if (Sources.getMinersFor(source).length > 0) {
+      if (Sources.getMinersFor(source, true).length > 0) {
         hasMiner = true;
       }
       if (Sources.getMulesFor(source).length) {
@@ -98,7 +98,7 @@ var ExpansionPlanner = {
     // First, check we've developed all sources in the same room
     // Every source should have at least 1 miner and 1 hauler
     for (let source of sources) {
-      if (!Sources.getMinersFor(source).length) {
+      if (!Sources.getMinersFor(source, true).length) {
         if (!hasMiner) {
           return {action: 'spawn_minimum_miner', harvestTarget: source.id};
         } else {

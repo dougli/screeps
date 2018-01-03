@@ -36,6 +36,10 @@ class BaseUnit {
     }
   }
 
+  isDyingSoon() {
+    return this.creep.ticksToLive <= this.creep.body.length * 3;
+  }
+
   _doTask() {
     const ACTION_MAP = {
       [Task.PICKUP]: this._pickup,

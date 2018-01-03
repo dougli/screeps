@@ -201,13 +201,16 @@ class BaseLayout {
       SW: [{x: 7, y: 9}, {x: 3, y: 5}]
     };
 
-    const result = room.lookForAtArea(
-      LOOK_STRUCTURES, y, x, y + qSize, x + qSize, true
-    ).map(
-      (result) => result.structure
-    ).filter(
-      (structure) => structure.energyCapacity > 0
-    );
+    // Note: find() is faster than lookForAtArea() here
+    const result = room.find(
+      FIND_MY_STRUCTURES
+    ).filter((structure) => {
+      const pos = structure.pos;
+      return structure.structureType !== STRUCTURE_LINK &&
+        structure.energyCapacity > 0 &&
+        x <= pos.x && pos.x <= x + qSize &&
+        y <= pos.y && pos.y <= y + qSize
+    });
 
     for (const extra of extraLooks[quadrant]) {
       const struct = room.lookForAt(
