@@ -32,7 +32,7 @@ var Spawner = {
           : Mule.getIdealBuild(spawn.room.energyCapacityAvailable);
     return spawn.spawnCreep(
       parts,
-      undefined,
+      Math.random().toString(36).substring(2),
       {memory: {role: 'mule', haulTarget}});
   },
 
@@ -44,7 +44,7 @@ var Spawner = {
 
     return spawn.spawnCreep(
       [MOVE, CARRY, MOVE, CARRY, MOVE, CARRY],
-      undefined,
+      Math.random().toString(36).substring(2),
       {memory: {role: 'mule', haulTarget}});
   },
 

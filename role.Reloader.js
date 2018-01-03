@@ -1,7 +1,8 @@
 const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
-const Task = require('Task');
+const Profiler = require('Profiler');
 const Rooms = require('Rooms');
+const Task = require('Task');
 
 class Reloader extends BaseUnit {
   static getIdealBuild(room) {
@@ -63,5 +64,7 @@ class Reloader extends BaseUnit {
     }
   }
 }
+
+Profiler.registerClass(Reloader, 'Reloader');
 
 module.exports = Reloader;
