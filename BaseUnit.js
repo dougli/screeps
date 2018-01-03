@@ -97,7 +97,8 @@ class BaseUnit {
       }
     }
 
-    if (task.target instanceof StructureContainer) {
+    if (task.target instanceof StructureContainer ||
+        task.target instanceof StructureStorage) {
       if (!creep.pos.isNearTo(task.target)) {
         creep.moveToWithTrail(task.target);
         return OK;

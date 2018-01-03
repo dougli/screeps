@@ -4,6 +4,7 @@ const ExpansionPlanner = require('ExpansionPlanner');
 const Miner = require('role.Miner');
 const Mule = require('role.Mule');
 const Profiler = require('Profiler');
+const Reloader = require('role.Reloader');
 const Scout = require('role.Scout');
 const Spawner = require('role.Spawner');
 const Tower = require('role.tower');
@@ -37,6 +38,9 @@ module.exports.loop = function () {
         break;
       case 'mule':
         units.push(new Mule(creep));
+        break;
+      case 'reloader':
+        units.push(new Reloader(creep));
         break;
       case 'builder':
         units.push(new Builder(creep));

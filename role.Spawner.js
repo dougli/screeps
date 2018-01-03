@@ -3,6 +3,7 @@ const ExpansionPlanner = require('ExpansionPlanner');
 const Miner = require('role.Miner');
 const Mule = require('role.Mule');
 const Upgrader = require('role.Upgrader');
+const Reloader = require('role.Reloader');
 
 var NUM_EXTENSIONS = [0, 0, 5, 10, 20, 30, 30, 30, 30];
 
@@ -29,10 +30,30 @@ var Spawner = {
     const parts = minimum
           ? [MOVE, CARRY]
           : Mule.getIdealBuild(spawn.room.energyCapacityAvailable);
-    return spawn.createCreep(
+    return spawn.spawnCreep(
       parts,
       undefined,
-      {role: 'mule', haulTarget});
+      {memory: {role: 'mule', haulTarget}});
+  },
+
+  spawnRecoveryMule: function(spawn, haulTarget) {
+    const result = Spawner.spawnMule(spawn, haulTarget, false);
+    if (result === OK) {
+      return OK;
+    }
+
+    return spawn.spawnCreep(
+      [MOVE, CARRY, MOVE, CARRY, MOVE, CARRY],
+      undefined,
+      {memory: {role: 'mule', haulTarget}});
+  },
+
+  spawnReloader: function(spawn, quadrant) {
+    return spawn.createCreep(
+      Reloader.getIdealBuild(spawn.room),
+      undefined,
+      {role: 'reloader', quadrant}
+    );
   },
 
   spawnUpgrader: function(spawn, upgradeTarget) {
@@ -71,6 +92,10 @@ var Spawner = {
       Spawner.spawnMule(spawn, plan.haulTarget);
     } else if (plan.action == 'spawn_minimum_mule') {
       Spawner.spawnMule(spawn, plan.haulTarget, true);
+    } else if (plan.action == 'spawn_recovery_mule') {
+      Spawner.spawnRecoveryMule(spawn, plan.haulTarget);
+    } else if (plan.action == 'spawn_reloader') {
+      Spawner.spawnReloader(spawn, plan.quadrant);
     } else if (plan.action == 'spawn_upgrader') {
       Spawner.spawnUpgrader(spawn, plan.upgradeTarget);
     } else if (plan.action == 'spawn_builder') {

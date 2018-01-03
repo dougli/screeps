@@ -108,21 +108,8 @@ var ExpansionPlanner = {
         if (!hasMule) {
           return {action: 'spawn_minimum_mule', haulTarget: source.id};
         }
-        return {action: 'spawn_mule', haulTarget: source.id};
+        return {action: 'spawn_recovery_mule', haulTarget: source.id};
       }
-    }
-
-    // Then, check if we want to build structures - prioritize unless
-    // downgrade is imminent
-    const hasBuildSites = Rooms.getBuildTasks(room).length > 0;
-    if (!Rooms.getBuilderFor(room) && hasBuildSites) {
-      return {action: 'spawn_builder', room: room.name};
-    }
-
-    // Then, check if we have something upgrading the room
-    if (Controllers.mustPrioritizeUpgrade(room.controller) &&
-        Controllers.getUpgradeSpeed(room.controller) == 0) {
-      return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
     }
 
     // Then, full expand out all miners as needed
@@ -133,6 +120,25 @@ var ExpansionPlanner = {
       if (Sources.getRemainingMuleSpeed(source) > 1) {
         return {action: 'spawn_mule', haulTarget: source.id};
       }
+    }
+
+    // If we are up to the age where we need haulers, let's build them
+    const missingReloaders = Rooms.getMissingReloaders(room);
+    if (missingReloaders.length) {
+      return {action: 'spawn_reloader', quadrant: missingReloaders[0]};
+    }
+
+    // Then, check if we have something upgrading the room
+    if (Controllers.mustPrioritizeUpgrade(room.controller) &&
+        Controllers.getUpgradeSpeed(room.controller) == 0) {
+      return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
+    }
+
+    // Then, check if we want to build structures - prioritize unless
+    // downgrade is imminent
+    const hasBuildSites = Rooms.getBuildTasks(room).length > 0;
+    if (!Rooms.getBuilderFor(room) && hasBuildSites) {
+      return {action: 'spawn_builder', room: room.name};
     }
 
     // Then, fully expand out upgrade speed

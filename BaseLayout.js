@@ -157,6 +157,68 @@ class BaseLayout {
     return plans;
   }
 
+  /**
+   * Given a room, returns an array possibly containing 'NE', 'NW', 'SE', 'SW'
+   * representing portions of the base are built and require a reloader
+   */
+  static getActiveQuadrants(room) {
+    if (!room.controller || !room.controller.my) {
+      return [];
+    }
+
+    switch (room.controller.level) {
+    case 4:
+      return ['SW'];
+    case 5:
+    case 6:
+      return ['SW', 'SE'];
+    case 7:
+    case 8:
+      return ['SW', 'SE', 'NE'];
+    }
+
+    return [];
+  }
+
+  /**
+   * Given a room and quadrant, returns all the energy bearing structures in
+   * that quadrant that require reloading.
+   */
+  static getQuadrantEnergyStructures(room, quadrant) {
+    const pos = BaseLayout.getBasePos(room);
+    if (!pos) {
+      return [];
+    }
+
+    const qSize = Math.floor((SIZE - 1) / 2);
+    const x = pos.x + ((quadrant == 'NE' || quadrant == 'SE') ? qSize : 0);
+    const y = pos.y + ((quadrant == 'SW' || quadrant == 'SE') ? qSize : 0);
+
+    const extraLooks = {
+      NE: [{x: 5, y: 3}, {x: 9, y: 7}],
+      NW: [{x: 7, y: 3}, {x: 3, y: 7}],
+      SE: [{x: 5, y: 9}, {x: 9, y: 5}],
+      SW: [{x: 7, y: 9}, {x: 3, y: 5}]
+    };
+
+    const result = room.lookForAtArea(
+      LOOK_STRUCTURES, y, x, y + qSize, x + qSize, true
+    ).map(
+      (result) => result.structure
+    ).filter(
+      (structure) => structure.energyCapacity > 0
+    );
+
+    for (const extra of extraLooks[quadrant]) {
+      const struct = room.lookForAt(
+        LOOK_STRUCTURES, pos.x + extra.x, pos.y + extra.y
+      )[0];
+      struct && struct.energyCapacity > 0 && result.push(struct);
+    }
+
+    return result;
+  }
+
   static drawBase(x, y, level, includePrevious, roomName) {
     // Test by using RoomVisual
     // First, get all the structures to place at that level
