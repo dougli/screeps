@@ -87,7 +87,7 @@ var ExpansionPlanner = {
 
     for (let source of sources) {
       energyPerTick += Sources.getEnergyPerTick(source);
-      if (Sources.getMinersFor(source, true).length > 0) {
+      if (Sources.getMinersFor(source).length) {
         hasMiner = true;
       }
       if (Sources.getMulesFor(source).length) {
@@ -235,53 +235,9 @@ var ExpansionPlanner = {
       return;
     }
 
-    // First, fully build out the base at the current level
+    // Fully build out the base at the current level
     let plans = BaseLayout.getConstructionPlans(room);
-    if (ExpansionPlanner._buildPlans(room, plans, numToBuild)) {
-      return;
-    }
-
-    // Load any roads we're trying to build and construct those
-    plans = room.memory.roadPlan;
-    if (ExpansionPlanner._buildPlans(room, plans, numToBuild)) {
-      return;
-    } else {
-      delete room.memory.roadPlan;
-    }
-
-    // Place a road between the base and the controller
-    const center = BaseLayout.getBaseCenter(room);
-    const container = Controllers.getContainerFor(room.controller);
-    if (room.controller.level >= 4 && center && container) {
-      if (ExpansionPlanner._buildRoad(container.pos, {pos: center, range: 3})) {
-        return;
-      }
-    }
-
-    // TODO: Place a road between the source and controller
-  },
-
-  _buildRoad: function(origin, goal) {
-    const room = Game.rooms[origin.roomName];
-    const result = Paths.search(origin, goal, {ignoreCreeps: true});
-    const roadPlan = result.path.map((pos) => {
-      return {x: pos.x, y: pos.y, type: STRUCTURE_ROAD};
-    });
-    const structures = room.lookForAtArea(LOOK_STRUCTURES, 0, 0, 49, 49);
-
-    let shouldBuild = false;
-    for (const plan of roadPlan) {
-      if (!structures[plan.y][plan.x]) {
-        shouldBuild = true;
-        break;
-      }
-    }
-    if (!shouldBuild) {
-      return false;
-    }
-
-    room.memory.roadPlan = roadPlan;
-    return ExpansionPlanner._buildPlans(room, roadPlan, MAX_SITES_PER_ROOM);
+    ExpansionPlanner._buildPlans(room, plans, numToBuild);
   },
 
   _buildPlans: function(room, plans, numToBuild) {
