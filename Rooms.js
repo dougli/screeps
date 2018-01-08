@@ -70,7 +70,16 @@ class Rooms {
   static getReloadTasks(reloader, room) {
     const quadrant = reloader.getQuadrant();
     const toRefill = BaseLayout.getQuadrantEnergyStructures(room, quadrant)
-      .filter((structure) => structure.energy < structure.energyCapacity);
+      .filter((structure) => {
+        switch (structure.type) {
+        case STRUCTURE_TOWER:
+          return structure.energy < structure.energyCapacity / 2;
+        case STRUCTURE_LINK:
+          return false;
+        default:
+          return structure.energy < structure.energyCapacity;
+        }
+      });
 
     let result = toRefill.map((structure) => {
       return new Task(Task.TRANSFER, structure, 300);

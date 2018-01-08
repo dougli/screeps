@@ -15,15 +15,21 @@ BUILD_COSTS[MOVE] = 50;
 BUILD_COSTS[CARRY] = 50;
 
 var Spawner = {
-  spawnMiner: function(spawn, harvestTarget, minimum = false) {
-    const parts = minimum
-          ? [MOVE, CARRY, WORK]
-          : Miner.getIdealBuild(spawn.room.energyCapacityAvailable);
+  spawnMinimumMiner: function(spawn, harvestTarget) {
+    if (spawn.room.energyAvailable < 400 ||
+        Spawner.spawnMiner(spawn, harvestTarget) !== OK) {
+      return spawn.spawnCreep(
+        [MOVE, CARRY, WORK],
+        Math.random().toString(16).substring(2),
+        {memory: {role: 'miner', harvestTarget}});
+    }
+  },
 
-    return spawn.createCreep(
-      parts,
-      undefined,
-      {role: 'miner', harvestTarget});
+  spawnMiner: function(spawn, harvestTarget) {
+    return spawn.spawnCreep(
+      Miner.getIdealBuild(spawn.room.energyCapacityAvailable),
+      Math.random().toString(16).substring(2),
+      {memory: {role: 'miner', harvestTarget}});
   },
 
   spawnMule: function(spawn, haulTarget, minimum = false) {
@@ -32,7 +38,7 @@ var Spawner = {
           : Mule.getIdealBuild(spawn.room.energyCapacityAvailable);
     return spawn.spawnCreep(
       parts,
-      Math.random().toString(36).substring(2),
+      Math.random().toString(16).substring(2),
       {memory: {role: 'mule', haulTarget}});
   },
 
@@ -44,7 +50,7 @@ var Spawner = {
 
     return spawn.spawnCreep(
       [MOVE, CARRY, MOVE, CARRY, MOVE, CARRY],
-      Math.random().toString(36).substring(2),
+      Math.random().toString(16).substring(2),
       {memory: {role: 'mule', haulTarget}});
   },
 
@@ -79,7 +85,7 @@ var Spawner = {
     if (plan.action == 'spawn_miner') {
       Spawner.spawnMiner(spawn, plan.harvestTarget);
     } else if (plan.action == 'spawn_minimum_miner') {
-      Spawner.spawnMiner(spawn, plan.harvestTarget, true);
+      Spawner.spawnMinimumMiner(spawn, plan.harvestTarget);
     // } else if (plan.action == 'spawn_scout') {
     //   spawn.createCreep([MOVE], undefined, {role: 'scout'});
     // } else if (plan.action == 'spawn_claimer') {

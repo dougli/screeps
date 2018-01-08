@@ -48,6 +48,15 @@ class Miner extends BaseUnit {
     }
 
     const container = Sources.getContainerFor(source);
+
+    // 0. Move to an ideal position if there are no other miners
+    if (container &&
+        Sources.getMinersFor(source).length === 1 &&
+        creep.pos.getRangeTo(container) > 0) {
+      creep.moveToWithTrail(container);
+      return;
+    }
+
     const canCarryMore =
           creep.carry.energy <= (creep.carryCapacity - this.getMineSpeed());
     // 1. Repair if possible - we assume the miner is nearby since it will not
@@ -58,7 +67,7 @@ class Miner extends BaseUnit {
     }
 
     // 2. Mine if we have enough empty capacity
-    if (canCarryMore) {
+    if (canCarryMore || container) {
       if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
         creep.moveToWithTrail(source);
       }
@@ -66,12 +75,7 @@ class Miner extends BaseUnit {
 
     // 3. Transfer to container or, if none, nearby mules
     if (creep.carry.energy > 0) {
-      if (container) {
-        const result = creep.transfer(container, RESOURCE_ENERGY, creep.carry.energy);
-        if (result === ERR_NOT_IN_RANGE && !canCarryMore) {
-          creep.moveToWithTrail(container);
-        }
-      } else {
+      if (!container) {
         const nearbyMule = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
           filter: (other) => other.memory.role === 'mule',
         })[0];
@@ -82,6 +86,11 @@ class Miner extends BaseUnit {
             nearbyMule.carryCapacity - nearbyMule.carry.energy
           );
           creep.transfer(nearbyMule, RESOURCE_ENERGY, maxTransfer);
+        }
+      } else if (!canCarryMore) {
+        const result = creep.transfer(container, RESOURCE_ENERGY, creep.carry.energy);
+        if (result === ERR_NOT_IN_RANGE) {
+          creep.moveToWithTrail(container);
         }
       }
     }
