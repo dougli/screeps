@@ -123,7 +123,7 @@ var ExpansionPlanner = {
     }
 
     // If we are up to the age where we need haulers, let's build them
-    const upgradeSpeed = Controller.getUpgradeSpeed(room.controller);
+    const upgradeSpeed = Controllers.getUpgradeSpeed(room.controller);
     const missingReloaders = Rooms.getMissingReloaders(room);
     if (missingReloaders.length) {
       return {action: 'spawn_reloader', quadrant: missingReloaders[0]};
