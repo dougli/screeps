@@ -123,6 +123,7 @@ var ExpansionPlanner = {
     }
 
     // If we are up to the age where we need haulers, let's build them
+    const upgradeSpeed = Controller.getUpgradeSpeed(room.controller);
     const missingReloaders = Rooms.getMissingReloaders(room);
     if (missingReloaders.length) {
       return {action: 'spawn_reloader', quadrant: missingReloaders[0]};
@@ -130,7 +131,7 @@ var ExpansionPlanner = {
 
     // Then, check if we have something upgrading the room
     if (Controllers.mustPrioritizeUpgrade(room.controller) &&
-        Controllers.getUpgradeSpeed(room.controller) == 0) {
+        upgradeSpeed === 0) {
       return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
     }
 
@@ -144,7 +145,8 @@ var ExpansionPlanner = {
     // Then, fully expand out upgrade speed
     if (room.controller &&
         !hasBuildSites &&
-        energyPerTick - Controllers.getUpgradeSpeed(room.controller) > 2) {
+        (Controllers.getContainerFor(room.controller) || upgradeSpeed === 0) &&
+        energyPerTick - upgradeSpeed > 2) {
       return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
     }
 
