@@ -18,6 +18,10 @@ class Rooms {
     return room.towers || [];
   }
 
+  static getDefenseMission(room) {
+    return room.defenseMission;
+  }
+
   static getMissingReloaders(room) {
     if (!room.storage || !room.storage.my) {
       return [];

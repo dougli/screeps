@@ -2,13 +2,16 @@ const Builder = require('role.Builder');
 const Claimer = require('role.Claimer');
 const ExpansionPlanner = require('ExpansionPlanner');
 const Miner = require('role.Miner');
+const MissionLoader = require('MissionLoader');
 const Mule = require('role.Mule');
+const Overseer = require('Overseer');
 const Profiler = require('Profiler');
 const Reloader = require('role.Reloader');
 const Scout = require('role.Scout');
 const Spawner = require('role.Spawner');
-const Tower = require('role.tower');
+const Tower = require('role.Tower');
 const Upgrader = require('role.Upgrader');
+const BaseLayout = require('BaseLayout');
 
 require('CreepMixin').run();
 require('mixin.Room').run();
@@ -23,6 +26,8 @@ module.exports.loop = function () {
         delete Memory.creeps[i];
       }
     }
+
+    MissionLoader.loadAll();
 
     // Initialize units
     const units = [];
@@ -53,6 +58,20 @@ module.exports.loop = function () {
       }
     }
 
+    const structures = [];
+    for (var name in Game.structures) {
+      var structure = Game.structures[name];
+      if (structure.structureType === STRUCTURE_TOWER) {
+        structures.push(new Tower(structure));
+      }
+    }
+
+    Overseer.run();
+
+    for (let id in Game.missions) {
+      Game.missions[id].run();
+    }
+
     for (let id in Game.rooms) {
       ExpansionPlanner.run(Game.rooms[id]);
     }
@@ -66,11 +85,6 @@ module.exports.loop = function () {
       unit.creep.save();
     });
 
-    for (var name in Game.structures) {
-      var structure = Game.structures[name];
-      if (structure.structureType === STRUCTURE_TOWER) {
-        new Tower(structure).run();
-      }
-    }
+    structures.forEach(structure => structure.run());
   });
 }
