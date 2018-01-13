@@ -14,7 +14,15 @@ class Rooms {
     return room.reloaders || {};
   }
 
+  static getFriendlyTowers(room) {
+    return room.towers || [];
+  }
+
   static getMissingReloaders(room) {
+    if (!room.storage || !room.storage.my) {
+      return [];
+    }
+
     const quadrants = BaseLayout.getActiveQuadrants(room);
     const reloaders = Rooms.getReloadersFor(room);
     const result = [];
@@ -58,7 +66,7 @@ class Rooms {
       if (structure.my) {
         result.push(new Task(Task.REPAIR, structure, amount));
       } else if (structure.structureType === STRUCTURE_ROAD) {
-        if (amount >= 1000) {
+        if (amount >= 3000) {
           result.push(new Task(Task.REPAIR, structure, amount));
         }
       }
