@@ -86,5 +86,12 @@ module.exports.loop = function () {
     });
 
     structures.forEach(structure => structure.run());
+
+    for (const room in Memory.rooms) {
+      const mem = Memory.rooms[room];
+      delete mem.trails;
+      delete mem.roadPlan;
+      delete mem.exits;
+    }
   });
 }

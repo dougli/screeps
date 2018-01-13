@@ -12,35 +12,9 @@ OPPOSITE_DIR[TOP] = BOTTOM;
 OPPOSITE_DIR[BOTTOM] = TOP;
 
 const MAX_SITES_PER_ROOM = 4;
-var EXPLORE_PING = 1000;
-var HOSTILE_EXPLORE_PING = 6000;
 var MIN_RESERVATION = 4000;
 
 var ExpansionPlanner = {
-  getScoutCandidates: function(roomName) {
-    if (!Memory.rooms[roomName]) {
-      return {};
-    }
-
-    var result = {};
-
-    var now = Game.time;
-    var exits = Memory.rooms[roomName].exits;
-    for (var dir in exits) {
-      var data = Memory.rooms[exits[dir]];
-      var sinceLastSeen = now - data.lastSeen;
-      var diff = ExpansionPlanner.wasRoomHostile(exits[dir])
-          ? HOSTILE_EXPLORE_PING
-          : EXPLORE_PING;
-
-      if (sinceLastSeen > diff) {
-        result[dir] = exits[dir];
-      }
-    }
-
-    return result;
-  },
-
   findSourceRoom: function(id) {
     for (let roomName in Memory.rooms) {
       let memory = Memory.rooms[roomName];
@@ -196,23 +170,7 @@ var ExpansionPlanner = {
       return a.id < b.id ? -1 : 1;
     }).forEach((source) => Sources.getMemoryFor(source));
 
-    // Configure exits
-    var exits = Game.map.describeExits(room.name);
-    room.memory.exits = exits;
     room.memory.lastSeen = Game.time;
-
-    for (var direction in exits) {
-      var exitName = exits[direction];
-      if (!Memory.rooms[exitName]) {
-        Memory.rooms[exitName] = {lastSeen: 0};
-      }
-
-      if (!Memory.rooms[exitName].exits) {
-        Memory.rooms[exitName].exits = {};
-      }
-      Memory.rooms[exitName].exits[OPPOSITE_DIR[direction]] = room.name;
-    }
-
     return room.memory;
   },
 
