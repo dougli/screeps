@@ -98,18 +98,23 @@ class ScoutMission extends Mission {
   }
 
   static getRoomsInRange(origin, range) {
-    const result = {[origin]: 0};
+    const result = {};
     let queue = [origin];
 
-    for (let ii = 1; ii <= range; ii++) {
+    for (let ii = 0; ii <= range; ii++) {
       let nextQueue = [];
 
       queue.forEach(room => {
+        if (!Game.map.isRoomAvailable(room)) {
+          return;
+        }
+
+        result[room] = ii;
+
         const exits = Game.map.describeExits(room);
         for (const dir in exits) {
           const neighbor = exits[dir];
           if (!(neighbor in result)) {
-            result[neighbor] = ii;
             nextQueue.push(neighbor);
           }
         }

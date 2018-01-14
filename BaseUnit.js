@@ -174,10 +174,14 @@ class BaseUnit {
       return DONE;
     }
 
-    this.creep.moveTo(
+    const result = this.creep.moveTo(
       new RoomPosition(25, 25, targetRoom),
       {reusePath: PATH_REUSE}
     );
+
+    if (result === ERR_NO_PATH) {
+      return DONE;
+    }
     return OK;
   }
 

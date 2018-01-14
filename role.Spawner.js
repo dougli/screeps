@@ -4,6 +4,7 @@ const Miner = require('role.Miner');
 const Mule = require('role.Mule');
 const Upgrader = require('role.Upgrader');
 const Reloader = require('role.Reloader');
+const Profiler = require('Profiler');
 
 var NUM_EXTENSIONS = [0, 0, 5, 10, 20, 30, 30, 30, 30];
 
@@ -109,5 +110,7 @@ var Spawner = {
     }
   }
 };
+
+Profiler.registerObject(Spawner, 'Spawner');
 
 module.exports = Spawner;

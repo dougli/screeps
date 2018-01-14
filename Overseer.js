@@ -3,12 +3,13 @@ const DefenseMission = require('DefenseMission');
 const Rooms = require('Rooms');
 const ScoutMission = require('ScoutMission');
 const Sources = require('Sources');
+const Profiler = require('Profiler');
 
 const SCOUT_DELAY = 50;
 const ME = 'dougli';
 
-class Overseer {
-  static run() {
+const Overseer = {
+  run: function() {
     for (const name in Memory.rooms) {
       const room = Game.rooms[name];
       const memory = Memory.rooms[name];
@@ -47,7 +48,9 @@ class Overseer {
         memory.lastSeen = Game.time;
       }
     }
-  }
-}
+  },
+};
+
+Profiler.registerObject(Overseer, 'Overseer');
 
 module.exports = Overseer;
