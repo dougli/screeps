@@ -31,22 +31,20 @@ const Overseer = {
         ScoutMission.create(name);
       }
 
-      if (room) {
-        if (!memory.lastSeen) {
-          room.find(FIND_SOURCES).forEach(source => {
-            Sources.getMemoryFor(source);
-          });
-        }
-
-        const owner = Controllers.getOwner(room.controller);
-        if (owner && owner != ME) {
-          memory.hostile = true;
-        } else {
-          delete memory.hostile;
-        }
-
-        memory.lastSeen = Game.time;
+      if (!memory || !memory.lastSeen) {
+        room.find(FIND_SOURCES).forEach(source => {
+          Sources.getMemoryFor(source);
+        });
       }
+
+      const owner = Controllers.getOwner(room.controller);
+      if (owner && owner != ME) {
+        memory.hostile = true;
+      } else {
+        delete memory.hostile;
+      }
+
+      memory.lastSeen = Game.time;
     }
   },
 };
