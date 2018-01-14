@@ -1,6 +1,7 @@
 const BaseUnit = require('BaseUnit');
 
 const REUSE_PATH = 20;
+const ME = 'dougli';
 
 class Claimer extends BaseUnit {
   static getIdealBuild(energy) {
