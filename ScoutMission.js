@@ -52,11 +52,13 @@ class ScoutMission extends Mission {
 
   static findScoutTarget(base, fromRoom) {
     // Find a target for the scout
-    const targets = ScoutMission.getRoomsInRange(base, 3);
+    const targets = ScoutMission.getRoomsInRange(base, SCOUT_RANGE);
     const possibleTargets = Object.assign({}, targets);
     for (const room in possibleTargets) {
       const memory = Memory.rooms[room];
-      if (!memory ||
+      if (!memory) {
+        continue;
+      }
           (memory.hostile && memory.lastSeen + HOSTILE_PING >= Game.time) ||
           (!memory.hostile && memory.lastSeen + EXPLORE_PING >= Game.time)) {
         delete possibleTargets[room];
