@@ -54,12 +54,12 @@ class Mission {
     delete Game.missions[this.id];
   }
 
-  requisitionCreep(key, type, parts) {
+  requisitionCreep(key, type, memory) {
     if (Game.time != LastTick) {
       REQUESTED_CREEPS = [];
       LastTick = Game.time;
     }
-    REQUESTED_CREEPS.push({mission: this, key, type, parts});
+    REQUESTED_CREEPS.push({mission: this, key, type, memory});
   }
 
   provideCreep(key, creep) {

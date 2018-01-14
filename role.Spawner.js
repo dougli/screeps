@@ -18,7 +18,7 @@ BUILD_COSTS[CARRY] = 50;
 var Spawner = {
   spawnMinimumMiner: function(spawn, harvestTarget) {
     if (spawn.room.energyAvailable < 400 ||
-        Spawner.spawnMiner(spawn, harvestTarget) !== OK) {
+        Spawner.spawnMiner(spawn, {harvestTarget}) !== OK) {
       return spawn.spawnCreep(
         [MOVE, CARRY, WORK],
         Math.random().toString(16).substring(2),
@@ -26,11 +26,17 @@ var Spawner = {
     }
   },
 
-  spawnMiner: function(spawn, harvestTarget) {
+  spawnMiner: function(spawn, plan) {
     return spawn.spawnCreep(
       Miner.getIdealBuild(spawn.room.energyCapacityAvailable),
       Math.random().toString(16).substring(2),
-      {memory: {role: 'miner', harvestTarget}});
+      {memory: {
+        role: 'miner',
+        harvestTarget: plan.harvestTarget,
+        harvestRoom: plan.harvestRoom,
+        mission: plan.mission,
+        missionKey: plan.key,
+      }});
   },
 
   spawnMule: function(spawn, haulTarget, minimum = false) {
@@ -96,7 +102,7 @@ var Spawner = {
   run: function(spawn) {
     var plan = ExpansionPlanner.getRoomDevelopmentPlan(spawn.room);
     if (plan.action == 'spawn_miner') {
-      Spawner.spawnMiner(spawn, plan.harvestTarget);
+      Spawner.spawnMiner(spawn, plan);
     } else if (plan.action == 'spawn_minimum_miner') {
       Spawner.spawnMinimumMiner(spawn, plan.harvestTarget);
     } else if (plan.action == 'spawn_mule') {

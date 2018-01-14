@@ -27,30 +27,6 @@ var ExpansionPlanner = {
     return null;
   },
 
-  findControllerRoom: function(id) {
-    for (let roomName in Memory.rooms) {
-      let memory = Memory.rooms[roomName];
-      if (memory.controller && memory.controller.id === id) {
-        return roomName;
-      }
-    }
-
-    return null;
-  },
-
-  wasRoomHostile: function(roomName) {
-    var roomMemory = (Memory.rooms[roomName] || {});
-    if (roomMemory.hostileCreeps > 0) {
-      return true;
-    }
-
-    var towers = (roomMemory.hostileStructures || []).filter(
-      (type) => type === STRUCTURE_TOWER
-    );
-
-    return towers.length > 0;
-  },
-
   getRoomDevelopmentPlan: function(room) {
     let hasMule = false;
     let hasMiner = false;
@@ -138,6 +114,14 @@ var ExpansionPlanner = {
         action: 'spawn_claimer',
         mission: requisition.mission.id,
         key: requisition.key
+      };
+    } else if (requisition && requisition.type === 'miner') {
+      return {
+        action: 'spawn_miner',
+        mission: requisition.mission.id,
+        key: requisition.key,
+        harvestTarget: requisition.memory.harvestTarget,
+        harvestRoom: requisition.memory.harvestRoom
       };
     }
 
