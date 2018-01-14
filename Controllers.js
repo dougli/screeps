@@ -17,7 +17,7 @@ class Controllers {
     if (!controller) {
       return null;
     } else if (controller.owner) {
-      return controller.owner;
+      return controller.owner.username;
     }
     if (controller.reservation) {
       return controller.reservation.username;
