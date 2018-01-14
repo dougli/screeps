@@ -28,7 +28,6 @@ class Scout extends BaseUnit {
   }
 
   run() {
-    this.tasks = [];
     if (this.creep.ticksToLive == CREEP_LIFE_TIME) {
       this.creep.notifyWhenAttacked(false);
     }
