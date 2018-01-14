@@ -43,7 +43,6 @@ class BaseUnit {
   _doTask() {
     const ACTION_MAP = {
       [Task.PICKUP]: this._pickup,
-      [Task.WAIT_PICKUP]: this._harvest,
       [Task.TRANSFER]: this._transfer,
       // [Task.REPAIR]: this._repair,
       [Task.BUILD]: this._build,
@@ -125,25 +124,6 @@ class BaseUnit {
     } else {
       creep.moveToWithTrail(task.target);
       return OK;
-    }
-  }
-
-  _harvest(task) {
-    const creep = this.creep;
-    let needed = creep.carryCapacity - creep.carry.energy;
-    if (needed === 0) {
-      return DONE;
-    }
-
-    var target = task.target;
-    switch (creep.harvest(target)) {
-    case ERR_NOT_IN_RANGE:
-      creep.moveToWithTrail(target);
-      return OK;
-    case OK:
-      return OK;
-    default:
-      return DONE;
     }
   }
 
