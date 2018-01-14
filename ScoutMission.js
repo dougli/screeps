@@ -39,21 +39,15 @@ class ScoutMission extends Mission {
       return;
     }
 
-    if (this.memory.target && scout.getRoomName() != this.memory.target) {
-      scout.setTarget(this.memory.target);
-      return;
-    }
-
     const newTarget = ScoutMission.findScoutTarget(
       this.memory.base,
       scout.getRoomName());
     if (!newTarget) {
       this.concludeSuccessfulMission();
       return;
-    } else {
-      this.memory.target = newTarget;
-      scout.setTarget(newTarget);
     }
+
+    scout.setTarget(newTarget);
   }
 
   static findScoutTarget(base, fromRoom) {
