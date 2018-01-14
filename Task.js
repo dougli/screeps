@@ -68,7 +68,7 @@ Object.assign(Task, {
   REPAIR: 'repair',
   BUILD: 'build',
   UPGRADE: 'upgrade',
-  MOVE: 'move',
+  SCOUT: 'scout',
 });
 
 module.exports = Task;

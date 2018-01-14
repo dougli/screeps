@@ -45,7 +45,7 @@ class BaseUnit {
     const ACTION_MAP = {
       [Task.PICKUP]: this._pickup,
       [Task.TRANSFER]: this._transfer,
-      [Task.MOVE]: this._move,
+      [Task.SCOUT]: this._scout,
       // [Task.REPAIR]: this._repair,
       [Task.BUILD]: this._build,
       // [Task.UPGRADE]: this._upgrade,
@@ -165,7 +165,7 @@ class BaseUnit {
     }
   }
 
-  _move(task) {
+  _scout(task) {
     const creep = this.creep;
     const targetRoom = task.target;
     const pos = this.creep.pos;

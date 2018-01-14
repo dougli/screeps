@@ -24,10 +24,11 @@ class Scout extends BaseUnit {
   }
 
   setTarget(target) {
-    this.setTask(new Task(Task.MOVE, target));
+    this.setTask(new Task(Task.SCOUT, target));
   }
 
   run() {
+    this.tasks = [];
     if (this.creep.ticksToLive == CREEP_LIFE_TIME) {
       this.creep.notifyWhenAttacked(false);
     }
