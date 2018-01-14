@@ -4,6 +4,7 @@ const Paths = require('Paths');
 const Profiler = require('Profiler');
 const Rooms = require('Rooms');
 const Sources = require('Sources');
+const Mission = require('Mission');
 
 var OPPOSITE_DIR = {};
 OPPOSITE_DIR[LEFT] = RIGHT;
@@ -124,21 +125,11 @@ var ExpansionPlanner = {
       return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
     }
 
-    // if (room.controller.level >= 4) {
-    //   var candidates = ExpansionPlanner.getScoutCandidates(room.name);
-    //   if (Object.keys(candidates).length) {
-    //     var hasScout = false;
-    //     for (var creepName in creeps) {
-    //       hasScout = creeps[creepName].memory.role === 'scout';
-    //       if (hasScout) {
-    //         break;
-    //       }
-    //     }
-    //     if (!hasScout) {
-    //       return {action: 'spawn_scout'};
-    //     }
-    //   }
-    // }
+    // Finally, fulfill any mission requisitions
+    const requisitions = Mission.getCreepRequisitions();
+    if (requisitions.length && requisitions[0].type === 'scout') {
+      return {action: 'spawn_scout', mission: requisitions[0].mission.id};
+    }
 
     // Check if we need to claim other rooms
     // if (room.energyCapacityAvailable >= 1250) {
@@ -160,34 +151,17 @@ var ExpansionPlanner = {
     return {};
   },
 
-  getRoomMemory: function(room) {
-    var now = Game.time;
-    if (room.memory && room.memory.lastSeen > 0) {
-      return room.memory;
-    }
-
-    room.find(FIND_SOURCES).sort((a, b) => {
-      return a.id < b.id ? -1 : 1;
-    }).forEach((source) => Sources.getMemoryFor(source));
-
-    room.memory.lastSeen = Game.time;
-    return room.memory;
-  },
-
   run: function(room) {
-    const now = Game.time;
-    var memory = ExpansionPlanner.getRoomMemory(room);
-
-    if (!room.controller || !room.controller.my) {
-      Object.assign(memory, ExpansionPlanner._getLiveStats(room));
-    } else if (now % 10 === 0) {
+    if (Game.time % 10 === 0) {
       ExpansionPlanner.buildBase(room);
     }
-
-    memory.lastSeen = now;
   },
 
   buildBase: function(room) {
+    if (!room.controller || !room.controller.my) {
+      return;
+    }
+
     const sites = room.find(FIND_MY_CONSTRUCTION_SITES);
     let numToBuild = MAX_SITES_PER_ROOM - sites.length;
     if (numToBuild <= 0) {
@@ -213,37 +187,6 @@ var ExpansionPlanner = {
       }
     }
     return plans.length > 0;
-  },
-
-  _getLiveStats: function(room) {
-    var creeps = room.find(FIND_HOSTILE_CREEPS);
-
-    var hostileCreeps = creeps.filter((creep) => {
-      return creep.body.some((part) => (
-        part === ATTACK || part === RANGED_ATTACK || part === HEAL
-      ));
-    }).length;
-
-    var neutralCreeps = creeps.length - hostileCreeps;
-
-    var hostileStructures = room.find(FIND_HOSTILE_STRUCTURES)
-        .map((structure) => structure.structureType);
-
-    var controller = null;
-    if (room.controller) {
-      controller = {
-        id: room.controller.id,
-        owner: room.controller.owner,
-        level: room.controller.level,
-        progress: room.controller.progress,
-        reservation: room.controller.reservation,
-        ticksToDowngrade: room.controller.ticksToDowngrade,
-      };
-    }
-
-    return {
-      neutralCreeps, hostileCreeps, hostileStructures, controller,
-    };
   },
 }
 

@@ -22,6 +22,10 @@ class Rooms {
     return room.defenseMission;
   }
 
+  static getScoutMissionFrom(room) {
+    return room.scoutMission;
+  }
+
   static getMissingReloaders(room) {
     if (!room.storage || !room.storage.my) {
       return [];

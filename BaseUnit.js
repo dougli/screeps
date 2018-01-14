@@ -3,6 +3,7 @@ const Task = require('Task');
 
 const DONE = 'DONE';
 const NEED_ENERGY = 'NEED_ENERGY';
+const PATH_REUSE = 10;
 
 class BaseUnit {
   constructor(creep) {
@@ -44,6 +45,7 @@ class BaseUnit {
     const ACTION_MAP = {
       [Task.PICKUP]: this._pickup,
       [Task.TRANSFER]: this._transfer,
+      [Task.MOVE]: this._move,
       // [Task.REPAIR]: this._repair,
       [Task.BUILD]: this._build,
       // [Task.UPGRADE]: this._upgrade,
@@ -161,6 +163,22 @@ class BaseUnit {
     default:
       return DONE;
     }
+  }
+
+  _move(task) {
+    const creep = this.creep;
+    const targetRoom = task.target;
+    const pos = this.creep.pos;
+    if (pos.roomName === targetRoom &&
+        pos.x > 0 && pos.x < 49 && pos.y > 0 && pos.y < 49) {
+      return DONE;
+    }
+
+    this.creep.moveTo(
+      new RoomPosition(25, 25, targetRoom),
+      {reusePath: PATH_REUSE}
+    );
+    return OK;
   }
 
   // _repair(task) {

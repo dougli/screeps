@@ -1,4 +1,5 @@
 const DefenseMission = require('DefenseMission');
+const ScoutMission = require('ScoutMission');
 
 class MissionLoader {
   static loadAll() {
@@ -16,6 +17,9 @@ class MissionLoader {
       switch (memory.type) {
       case 'defense':
         DefenseMission.deserialize(id, memory);
+        break;
+      case 'scout':
+        ScoutMission.deserialize(id, memory);
         break;
       default:
         console.log('Cannot deserialize mission ' + id);

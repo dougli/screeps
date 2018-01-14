@@ -1,7 +1,19 @@
+let REQUESTED_CREEPS = [];
+let LastTick = 0;
+
 class Mission {
+  static getCreepRequisitions() {
+    if (Game.time != LastTick) {
+      REQUESTED_CREEPS = [];
+      LastTick = Game.time;
+    }
+    return REQUESTED_CREEPS;
+  }
+
   constructor(id, memory) {
     this.id = id || Math.random().toString(16).substr(2);
     this.memory = memory || {};
+    this.creeps = [];
     Game.missions[this.id] = this;
   }
 
@@ -40,6 +52,18 @@ class Mission {
     console.log(message);
     delete Memory.missions[this.id];
     delete Game.missions[this.id];
+  }
+
+  requisitionCreep(type, parts) {
+    if (Game.time != LastTick) {
+      REQUESTED_CREEPS = [];
+      LastTick = Game.time;
+    }
+    REQUESTED_CREEPS.push({mission: this, type, parts});
+  }
+
+  provideCreep(creep) {
+    this.creeps.push(creep);
   }
 }
 

@@ -3,6 +3,18 @@ const Profiler = require('Profiler');
 const IMPASSABLE = 255;
 
 class Paths {
+  // static scoutSearch(origin, goal, opts) {
+  //   const startCPU = Game.cpu.getUsed();
+
+  //   const result = PathFinder.search(origin, goal, {
+  //     plainCost: 1,
+  //     swampCost: 1,
+  //   });
+
+  //   console.log('CPU', Game.cpu.getUsed() - startCPU);
+  //   return result;
+  // }
+
   static search(origin, goal, opts) {
     opts = opts || {};
 

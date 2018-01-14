@@ -1,51 +1,52 @@
-const Rooms = require('Rooms');
+const Controllers = require('Controllers');
 const DefenseMission = require('DefenseMission');
+const Rooms = require('Rooms');
+const ScoutMission = require('ScoutMission');
+const Sources = require('Sources');
 
-var EXPLORE_PING = 1000;
-var HOSTILE_EXPLORE_PING = 6000;
+const SCOUT_DELAY = 50;
+const ME = 'dougli';
 
 class Overseer {
   static run() {
-    for (const name in Game.rooms) {
+    for (const name in Memory.rooms) {
       const room = Game.rooms[name];
+      const memory = Memory.rooms[name];
+      const mine = room && room.controller && room.controller.my;
 
       // If it's my room, see if I have to defend it
-      if (room.controller &&
-          room.controller.my &&
-          !Rooms.getDefenseMission(room)) {
+      if (mine && !Rooms.getDefenseMission(room)) {
         const hostiles = room.find(FIND_HOSTILE_CREEPS);
         if (hostiles.length) {
-          DefenseMission.create(room.name);
+          DefenseMission.create(name);
         }
       }
 
-      // Scout nearby rooms on a schedule
+      // Scout rooms if we haven't seen it in a while
+      if (mine &&
+          Game.time % SCOUT_DELAY === 0 &&
+          !Rooms.getScoutMissionFrom(room) &&
+          ScoutMission.shouldScout(name)) {
+        ScoutMission.create(name);
+      }
 
-    }
-  }
+      if (room) {
+        if (!memory.lastSeen) {
+          room.find(FIND_SOURCES).forEach(source => {
+            Sources.getMemoryFor(source);
+          });
+        }
 
-  static getScoutCandidates(roomName) {
-    if (!Memory.rooms[roomName]) {
-      return {};
-    }
+        const owner = Controllers.getOwner(room.controller);
+        if (owner && owner != ME) {
+          memory.hostile = true;
+        } else {
+          delete memory.hostile;
+        }
 
-    var result = {};
-
-    var now = Game.time;
-    var exits = Memory.rooms[roomName].exits;
-    for (var dir in exits) {
-      var data = Memory.rooms[exits[dir]];
-      var sinceLastSeen = now - data.lastSeen;
-      var diff = ExpansionPlanner.wasRoomHostile(exits[dir])
-          ? HOSTILE_EXPLORE_PING
-          : EXPLORE_PING;
-
-      if (sinceLastSeen > diff) {
-        result[dir] = exits[dir];
+        memory.lastSeen = Game.time;
       }
     }
-
-    return result;
   }
 }
 

@@ -53,6 +53,9 @@ module.exports.loop = function () {
       case 'upgrader':
         units.push(new Upgrader(creep));
         break;
+      case 'scout':
+        units.push(new Scout(creep));
+        break;
       default:
         console.log('Unknown creep role ' + creep.memory.role);
       }

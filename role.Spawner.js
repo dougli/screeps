@@ -76,8 +76,8 @@ var Spawner = {
       {role: 'builder', room});
   },
 
-  spawnScout: function(spawn) {
-    return spawn.createCreep([MOVE], undefined, {role: 'scout'});
+  spawnScout: function(spawn, mission) {
+    return spawn.createCreep([MOVE], undefined, {role: 'scout', mission});
   },
 
   run: function(spawn) {
@@ -86,8 +86,6 @@ var Spawner = {
       Spawner.spawnMiner(spawn, plan.harvestTarget);
     } else if (plan.action == 'spawn_minimum_miner') {
       Spawner.spawnMinimumMiner(spawn, plan.harvestTarget);
-    // } else if (plan.action == 'spawn_scout') {
-    //   spawn.createCreep([MOVE], undefined, {role: 'scout'});
     // } else if (plan.action == 'spawn_claimer') {
     //   spawn.createCreep(
     //     [MOVE, CLAIM, CLAIM],
@@ -106,6 +104,8 @@ var Spawner = {
       Spawner.spawnUpgrader(spawn, plan.upgradeTarget);
     } else if (plan.action == 'spawn_builder') {
       Spawner.spawnBuilder(spawn, plan.room);
+    } else if (plan.action == 'spawn_scout') {
+      Spawner.spawnScout(spawn, plan.mission);
     }
   }
 };

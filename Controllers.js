@@ -13,6 +13,18 @@ class Controllers {
     return room.memory.controller;
   }
 
+  static getOwner(controller) {
+    if (!controller) {
+      return null;
+    } else if (controller.owner) {
+      return controller.owner;
+    }
+    if (controller.reservation) {
+      return controller.reservation.username;
+    }
+    return null;
+  }
+
   static getUpgradersFor(controller) {
     return (controller.upgraders || []);
   }
