@@ -101,9 +101,16 @@ class ScoutMission extends Mission {
       let nextQueue = [];
 
       queue.forEach(room => {
+        // Don't walk in impassable or hostile rooms
         if (!Game.map.isRoomAvailable(room)) {
           return;
         }
+        const memory = Memory.rooms[room];
+        if (memory && memory.hostile &&
+            memory.lastSeen + HOSTILE_PING >= Game.time) {
+          return;
+        }
+
 
         result[room] = ii;
 
