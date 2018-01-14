@@ -59,7 +59,7 @@ class ScoutMission extends Mission {
       if (!memory) {
         continue;
       }
-          (memory.hostile && memory.lastSeen + HOSTILE_PING >= Game.time) ||
+      if ((memory.hostile && memory.lastSeen + HOSTILE_PING >= Game.time) ||
           (!memory.hostile && memory.lastSeen + EXPLORE_PING >= Game.time)) {
         delete possibleTargets[room];
       }
