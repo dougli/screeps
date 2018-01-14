@@ -47,6 +47,11 @@ class Claimer extends BaseUnit {
     if (result === ERR_NOT_IN_RANGE) {
       this.creep.moveTo(targetRoom.controller);
     }
+
+    if (!targetRoom.controller.sign ||
+        targetRoom.controller.sign.username !== ME) {
+      this.creep.signController(targetRoom.controller, 'This mine is... mine.');
+    }
   }
 }
 
