@@ -5,7 +5,7 @@ const ScoutMission = require('ScoutMission');
 const Sources = require('Sources');
 const Profiler = require('Profiler');
 
-const SCOUT_DELAY = 50;
+const SCOUT_DELAY = 23;
 const ME = 'dougli';
 
 const Overseer = {

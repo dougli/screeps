@@ -152,7 +152,7 @@ var ExpansionPlanner = {
   },
 
   run: function(room) {
-    if (Game.time % 10 === 0) {
+    if (Game.time % 11 === 0) {
       ExpansionPlanner.buildBase(room);
     }
   },
