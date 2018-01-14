@@ -9,6 +9,9 @@ class BaseUnit {
   constructor(creep) {
     this.creep = creep;
     this.creep.unit = this;
+    if (this.getMission()) {
+      this.getMission().provideCreep(this.getMissionKey(), this);
+    }
   }
 
   hasTask() {
@@ -25,16 +28,12 @@ class BaseUnit {
     }
   }
 
-  addTask(task) {
-    if (task) {
-      this.creep.tasks.push(task);
-    }
+  getMission() {
+    return Game.missions[this.creep.memory.mission];
   }
 
-  prependTask(task) {
-    if (task) {
-      this.creep.tasks.unshift(task);
-    }
+  getMissionKey() {
+    return this.creep.memory.missionKey;
   }
 
   isDyingSoon() {

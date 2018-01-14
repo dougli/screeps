@@ -8,21 +8,6 @@ class Claimer extends BaseUnit {
     return [MOVE, MOVE, CLAIM, CLAIM];
   }
 
-  constructor(creep) {
-    super(creep);
-    if (this.getMission()) {
-      this.getMission().provideCreep(this.getMissionKey(), this);
-    }
-  }
-
-  getMission() {
-    return Game.missions[this.creep.memory.mission];
-  }
-
-  getMissionKey() {
-    return this.creep.memory.missionKey;
-  }
-
   getReserveTarget() {
     return this.creep.memory.room;
   }

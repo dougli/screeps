@@ -8,21 +8,6 @@ class Scout extends BaseUnit {
     return [MOVE];
   }
 
-  constructor(creep) {
-    super(creep);
-    if (this.getMission()) {
-      this.getMission().provideCreep(this.getMissionKey(), this);
-    }
-  }
-
-  getMission() {
-    return Game.missions[this.creep.memory.mission];
-  }
-
-  getMissionKey() {
-    return this.creep.memory.missionKey;
-  }
-
   getRoomName() {
     return this.creep.room.name;
   }
