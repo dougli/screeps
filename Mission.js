@@ -13,7 +13,7 @@ class Mission {
   constructor(id, memory) {
     this.id = id || Math.random().toString(16).substr(2);
     this.memory = memory || {};
-    this.creeps = [];
+    this.creeps = {};
     Game.missions[this.id] = this;
   }
 
@@ -54,16 +54,16 @@ class Mission {
     delete Game.missions[this.id];
   }
 
-  requisitionCreep(type, parts) {
+  requisitionCreep(key, type, parts) {
     if (Game.time != LastTick) {
       REQUESTED_CREEPS = [];
       LastTick = Game.time;
     }
-    REQUESTED_CREEPS.push({mission: this, type, parts});
+    REQUESTED_CREEPS.push({mission: this, key, type, parts});
   }
 
-  provideCreep(creep) {
-    this.creeps.push(creep);
+  provideCreep(key, creep) {
+    this.creeps[key] = creep;
   }
 }
 

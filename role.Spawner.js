@@ -77,8 +77,20 @@ var Spawner = {
       {role: 'builder', room});
   },
 
-  spawnScout: function(spawn, mission) {
-    return spawn.createCreep([MOVE], undefined, {role: 'scout', mission});
+  spawnScout: function(spawn, mission, missionKey) {
+    return spawn.createCreep(
+      [MOVE],
+      undefined,
+      {role: 'scout', mission, missionKey}
+    );
+  },
+
+  spawnClaimer: function(spawn, mission, missionKey) {
+    return spawn.createCreep(
+      [MOVE, MOVE, CLAIM, CLAIM],
+      undefined,
+      {role: 'claimer', mission, missionKey}
+    );
   },
 
   run: function(spawn) {
@@ -87,12 +99,6 @@ var Spawner = {
       Spawner.spawnMiner(spawn, plan.harvestTarget);
     } else if (plan.action == 'spawn_minimum_miner') {
       Spawner.spawnMinimumMiner(spawn, plan.harvestTarget);
-    // } else if (plan.action == 'spawn_claimer') {
-    //   spawn.createCreep(
-    //     [MOVE, CLAIM, CLAIM],
-    //     undefined,
-    //     {role: 'claimer', claimTarget: plan.claimTarget}
-    //   );
     } else if (plan.action == 'spawn_mule') {
       Spawner.spawnMule(spawn, plan.haulTarget);
     } else if (plan.action == 'spawn_minimum_mule') {
@@ -106,7 +112,9 @@ var Spawner = {
     } else if (plan.action == 'spawn_builder') {
       Spawner.spawnBuilder(spawn, plan.room);
     } else if (plan.action == 'spawn_scout') {
-      Spawner.spawnScout(spawn, plan.mission);
+      Spawner.spawnScout(spawn, plan.mission, plan.key);
+    } else if (plan.action == 'spawn_claimer') {
+      Spawner.spawnClaimer(spawn, plan.mission, plan.key);
     }
   }
 };

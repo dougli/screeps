@@ -126,27 +126,20 @@ var ExpansionPlanner = {
     }
 
     // Finally, fulfill any mission requisitions
-    const requisitions = Mission.getCreepRequisitions();
-    if (requisitions.length && requisitions[0].type === 'scout') {
-      return {action: 'spawn_scout', mission: requisitions[0].mission.id};
+    const requisition = Mission.getCreepRequisitions()[0];
+    if (requisition && requisition.type === 'scout') {
+      return {
+        action: 'spawn_scout',
+        mission: requisition.mission.id,
+        key: requisition.key
+      };
+    } else if (requisition && requisition.type === 'claimer') {
+      return {
+        action: 'spawn_claimer',
+        mission: requisition.mission.id,
+        key: requisition.key
+      };
     }
-
-    // Check if we need to claim other rooms
-    // if (room.energyCapacityAvailable >= 1250) {
-    //   for (let sourceID in miners) {
-    //     let source = Game.getObjectById(sourceID);
-    //     if (source &&
-    //         source.room.controller &&
-    //         !source.room.controller.owner &&
-    //         !(source.room.controller.id in claimers)) {
-    //       let reservation = source.room.controller.reservation;
-    //       if (!reservation ||
-    //           (reservation.username === 'dougli' && reservation.ticksToEnd < MIN_RESERVATION)) {
-    //         return {action: 'spawn_claimer', claimTarget: source.room.controller.id};
-    //       }
-    //     }
-    //   }
-    // }
 
     return {};
   },

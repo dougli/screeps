@@ -1,4 +1,5 @@
 const DefenseMission = require('DefenseMission');
+const RemoteMiningMission = require('RemoteMiningMission');
 const ScoutMission = require('ScoutMission');
 
 class MissionLoader {
@@ -20,6 +21,9 @@ class MissionLoader {
         break;
       case 'scout':
         ScoutMission.deserialize(id, memory);
+        break;
+      case 'remote_mine':
+        RemoteMiningMission.deserialize(id, memory);
         break;
       default:
         console.log('Cannot deserialize mission ' + id);

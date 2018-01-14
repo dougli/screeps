@@ -29,9 +29,9 @@ class ScoutMission extends Mission {
   }
 
   run() {
-    const scout = this.creeps[0];
+    const scout = this.creeps.scout;
     if (!scout) {
-      this.requisitionCreep('scout');
+      this.requisitionCreep('scout', 'scout');
       return;
     }
 

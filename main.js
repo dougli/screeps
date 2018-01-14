@@ -56,6 +56,9 @@ module.exports.loop = function () {
       case 'scout':
         units.push(new Scout(creep));
         break;
+      case 'claimer':
+        units.push(new Claimer(creep));
+        break;
       default:
         console.log('Unknown creep role ' + creep.memory.role);
       }
