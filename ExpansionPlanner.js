@@ -1,32 +1,13 @@
 const BaseLayout = require('BaseLayout');
 const Controllers = require('Controllers');
-const Paths = require('Paths');
+const Mission = require('Mission');
 const Profiler = require('Profiler');
 const Rooms = require('Rooms');
 const Sources = require('Sources');
-const Mission = require('Mission');
-
-var OPPOSITE_DIR = {};
-OPPOSITE_DIR[LEFT] = RIGHT;
-OPPOSITE_DIR[RIGHT] = LEFT;
-OPPOSITE_DIR[TOP] = BOTTOM;
-OPPOSITE_DIR[BOTTOM] = TOP;
 
 const MAX_SITES_PER_ROOM = 4;
-var MIN_RESERVATION = 4000;
 
 var ExpansionPlanner = {
-  findSourceRoom: function(id) {
-    for (let roomName in Memory.rooms) {
-      let memory = Memory.rooms[roomName];
-      if (memory.sources && id in memory.sources) {
-        return roomName;
-      }
-    }
-
-    return null;
-  },
-
   getRoomDevelopmentPlan: function(room) {
     let hasMule = false;
     let hasMiner = false;
@@ -51,7 +32,11 @@ var ExpansionPlanner = {
     for (let source of sources) {
       if (!Sources.getMinersFor(source, true).length) {
         if (!hasMiner) {
-          return {action: 'spawn_minimum_miner', harvestTarget: source.id};
+          return {
+            action: 'spawn_minimum_miner',
+            harvestTarget: source.id,
+            harvestRoom: room.name
+          };
         } else {
           return {action: 'spawn_miner', harvestTarget: source.id};
         }
