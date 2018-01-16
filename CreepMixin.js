@@ -108,21 +108,31 @@ module.exports = {
       this.moveTo(target, opts);
     };
 
-    // Creep.prototype.moveToExperimental = function(target) {
-    //   // Try to find a path in memory
-    //   const mem = this.memory._path;
+    Creep.prototype.moveToExperimental = function(dest) {
+      let target = null;
+      if (dest instanceof Creep) {
+        target = makeTarget(dest.pos.x, dest.pos.y, dest.pos.roomName, 1);
+        target.id = dest.id;
+      } else if (dest instanceof RoomObject) {
+        const range = Paths.isWalkable(dest) ? 0 : 1;
+        target = makeTarget(dest.pos.x, dest.pos.y, dest.pos.roomName, range);
+      } else if (dest instanceof RoomPosition) {
+        target = makeTarget(dest.x, dest.y, dest.roomName, 0);
+      } else {
+        return ERR_INVALID_TARGET;
+      }
 
-    //   const lastTarget = loadTarget(mem);
-    //   if (!lastTarget) {
-    //     calculatePath(this, target);
-    //   } else if (target instanceof RoomPosition && !target.isEqualTo(lastTarget)) {
-    //     calculatePath(this, target);
-    //   } else if (target !== lastTarget) {
-    //     calculatePath(this, target);
-    //   }
+      if (!sameTarget(this, target)) {
+        calculatePath(this, target);
+      }
 
-    //   return moveByPath(this);
-    // }
+      let result = moveByPath(this);
+      if (result == ERR_NOT_FOUND) {
+        calculatePath(this, target);
+        result = moveByPath(this);
+      }
+      return result;
+    }
 
     Creep.prototype.save = function() {
       this.memory.tasks = this.tasks.map(

@@ -2,6 +2,34 @@ const Profiler = require('Profiler');
 
 const IMPASSABLE = 255;
 
+function _cost(o) {
+  if (o instanceof Creep ||
+      o instanceof Source ||
+      o instanceof Mineral) {
+    return IMPASSABLE;
+  } else if (o instanceof Structure) {
+    switch (o.structureType) {
+    case STRUCTURE_ROAD:
+      return 1;
+    case STRUCTURE_CONTAINER:
+      return null;
+    case STRUCTURE_RAMPART:
+      return o.my ? null : IMPASSABLE;
+    }
+    return IMPASSABLE;
+  } else if (o instanceof ConstructionSite) {
+    if (!o.my ||
+        site.structureType === STRUCTURE_ROAD ||
+        site.structureType === STRUCTURE_CONTAINER ||
+        site.structureType === STRUCTURE_RAMPART) {
+      return null;
+    }
+    return IMPASSABLE;
+  }
+
+  return null;
+}
+
 /**
  * Options supported:
  *
@@ -14,8 +42,8 @@ const IMPASSABLE = 255;
  *     1. Useful for road building or for scout units that only have move
  *     parts. The default is false.
  */
-class Paths {
-  static search(origin, goal, options) {
+const Paths = {
+  search: function(origin, goal, options) {
     const opts = Object.assign({
       ignoreHostile: [],
       ignoreCreeps: false,
@@ -38,7 +66,7 @@ class Paths {
 
         const costs = new PathFinder.CostMatrix();
         room.find(FIND_STRUCTURES).forEach((struct) => {
-          const c = Paths._cost(struct);
+          const c = _cost(struct);
           if (c !== null) {
             costs.set(struct.pos.x, struct.pos.y, c);
           }
@@ -51,9 +79,9 @@ class Paths {
         }
 
         room.find(FIND_MY_CONSTRUCTION_SITES).forEach((site) => {
-          if (site.structureType !== STRUCTURE_ROAD &&
-              site.structureType !== STRUCTURE_CONTAINER) {
-            costs.set(site.pos.x, site.pos.y, IMPASSABLE);
+          const c = _cost(site);
+          if (c !== null) {
+            costs.set(site.pos.x, site.pos.y, c);
           }
         });
 
@@ -63,13 +91,13 @@ class Paths {
 
     result.unshift(origin);
     return result;
-  }
+  },
 
-  static isWalkable(object) {
-    return Paths._cost(object) !== IMPASSABLE;
-  }
+  isWalkable: function(object) {
+    return _cost(object) !== IMPASSABLE;
+  },
 
-  static serialize(path) {
+  serialize: function(path) {
     const result = [];
 
     let room = null;
@@ -87,9 +115,9 @@ class Paths {
     }
 
     return result;
-  }
+  },
 
-  static draw(path) {
+  draw: function(path) {
     let roomPoints = [];
     let prevRoom = null;
 
@@ -108,35 +136,7 @@ class Paths {
       new RoomVisual(prevRoom).poly(roomPoints, {lineStyle: 'dashed'});
     }
   }
-
-  static _cost(o) {
-    if (o instanceof Creep ||
-        o instanceof Source ||
-        o instanceof Mineral) {
-      return IMPASSABLE;
-    } else if (o instanceof Structure) {
-      switch (o.structureType) {
-      case STRUCTURE_ROAD:
-        return 1;
-      case STRUCTURE_CONTAINER:
-        return null;
-      case STRUCTURE_RAMPART:
-        return o.my ? null : IMPASSABLE;
-      }
-      return IMPASSABLE;
-    } else if (o instanceof ConstructionSite) {
-      if (!o.my ||
-          site.structureType === STRUCTURE_ROAD ||
-          site.structureType === STRUCTURE_CONTAINER ||
-          site.structureType === STRUCTURE_RAMPART) {
-        return null;
-      }
-      return IMPASSABLE;
-    }
-
-    return null;
-  }
-}
+};
 
 Profiler.registerObject(Paths, 'Paths');
 
