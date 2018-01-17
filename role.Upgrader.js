@@ -53,7 +53,7 @@ class Upgrader extends BaseUnit {
       if (site) {
         const result = this.creep.build(site);
         if (result == ERR_NOT_IN_RANGE || result == ERR_NOT_ENOUGH_RESOURCES) {
-          this.creep.moveToWithTrail(site);
+          this.creep.moveToExperimental(site);
         }
       }
       return;
@@ -62,14 +62,14 @@ class Upgrader extends BaseUnit {
     const result = this.creep.upgradeController(controller);
     switch (result) {
     case ERR_NOT_IN_RANGE:
-      this.creep.moveToWithTrail(controller);
+      this.creep.moveToExperimental(controller);
       break;
     case ERR_NOT_ENOUGH_RESOURCES:
       if (container) {
-        this.creep.moveToWithTrail(container);
+        this.creep.moveToExperimental(container);
       } else {
         // Otherwise, just move closer to the controller
-        this.creep.moveToWithTrail(controller);
+        this.creep.moveToExperimental(controller);
       }
       break;
     }

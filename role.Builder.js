@@ -39,7 +39,7 @@ class Builder extends BaseUnit {
         // one that was completed
         this.setTask(Rooms.getBuildTasks(this.getRoom())[1]);
         if (this.hasTask()) {
-          this.creep.moveToWithTrail(this.getCurrentTask().target);
+          this.creep.moveToExperimental(this.getCurrentTask().target);
         }
       }
     }

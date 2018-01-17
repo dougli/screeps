@@ -1,13 +1,10 @@
 const Profiler = require('Profiler');
 
+const MATRIX_CACHE = {};
 const IMPASSABLE = 255;
 
 function _cost(o) {
-  if (o instanceof Creep ||
-      o instanceof Source ||
-      o instanceof Mineral) {
-    return IMPASSABLE;
-  } else if (o instanceof Structure) {
+  if (o instanceof Structure) {
     switch (o.structureType) {
     case STRUCTURE_ROAD:
       return 1;
@@ -17,11 +14,15 @@ function _cost(o) {
       return o.my ? null : IMPASSABLE;
     }
     return IMPASSABLE;
+  } else if (o instanceof Creep ||
+             o instanceof Source ||
+             o instanceof Mineral) {
+    return IMPASSABLE;
   } else if (o instanceof ConstructionSite) {
     if (!o.my ||
-        site.structureType === STRUCTURE_ROAD ||
-        site.structureType === STRUCTURE_CONTAINER ||
-        site.structureType === STRUCTURE_RAMPART) {
+        o.structureType === STRUCTURE_ROAD ||
+        o.structureType === STRUCTURE_CONTAINER ||
+        o.structureType === STRUCTURE_RAMPART) {
       return null;
     }
     return IMPASSABLE;
@@ -47,50 +48,72 @@ const Paths = {
     const opts = Object.assign({
       ignoreHostile: [],
       ignoreCreeps: false,
-      ignoreTerrain: false
+      ignoreTerrain: false,
+      freshMatrix: false,
     }, options);
 
     const result = PathFinder.search(origin, goal, {
       plainCost: opts.ignoreTerrain ? 1 : 2,
+
       swampCost: opts.ignoreTerrain ? 1 : 10,
+      // Limit our cost if we are in the same room
+      maxOps: origin.roomName === goal.pos.roomName ? 500 : 2000,
+
       roomCallback: (roomName) => {
         const mem = Memory.rooms[roomName];
         if (mem && mem.hostile && opts.ignoreHostile.indexOf(roomName) < 0) {
           return false;
         }
 
+        if (origin.roomName !== roomName || opts.ignoreCreeps) {
+          return Paths._getStructureMatrix(roomName, opts.freshMatrix);
+        }
+
+        const matrix = Paths._getStructureMatrix(roomName, opts.freshMatrix)
+          .clone();
+
         const room = Game.rooms[roomName];
-        if (!room) {
-          return;
+        for (let creep of room.find(FIND_CREEPS)) {
+          matrix.set(creep.pos.x, creep.pos.y, IMPASSABLE);
         }
 
-        const costs = new PathFinder.CostMatrix();
-        room.find(FIND_STRUCTURES).forEach((struct) => {
-          const c = _cost(struct);
-          if (c !== null) {
-            costs.set(struct.pos.x, struct.pos.y, c);
-          }
-        });
-
-        if (!opts.ignoreCreeps) {
-          room.find(FIND_CREEPS).forEach((creep) => {
-            costs.set(creep.pos.x, creep.pos.y, IMPASSABLE);
-          });
-        }
-
-        room.find(FIND_MY_CONSTRUCTION_SITES).forEach((site) => {
-          const c = _cost(site);
-          if (c !== null) {
-            costs.set(site.pos.x, site.pos.y, c);
-          }
-        });
-
-        return costs;
+        return matrix;
       }
-    }).path;
+    });
 
-    result.unshift(origin);
-    return result;
+    result.path.unshift(origin);
+    return result.path;
+  },
+
+  _getStructureMatrix: function(roomName, freshMatrix) {
+    const cache = MATRIX_CACHE[roomName];
+    if (cache && (!freshMatrix || cache.time === Game.time)) {
+      return cache.matrix;
+    }
+
+    const room = Game.rooms[roomName];
+    if (!room) {
+      return;
+    }
+
+    const matrix = new PathFinder.CostMatrix();
+
+    for (let struct of room.find(FIND_STRUCTURES)) {
+      const c = _cost(struct);
+      if (c !== null) {
+        matrix.set(struct.pos.x, struct.pos.y, c);
+      }
+    }
+
+    for (let site of room.find(FIND_MY_CONSTRUCTION_SITES)) {
+      const c = _cost(site);
+      if (c !== null) {
+        matrix.set(site.pos.x, site.pos.y, c);
+      }
+    }
+
+    MATRIX_CACHE[roomName] = {matrix, time: Game.time};
+    return matrix;
   },
 
   isWalkable: function(object) {

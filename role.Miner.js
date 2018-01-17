@@ -43,7 +43,7 @@ class Miner extends BaseUnit {
       }
       const exitDir = Game.map.findExit(creep.room, roomName);
       const exit = creep.pos.findClosestByRange(exitDir);
-      creep.moveToWithTrail(exit);
+      creep.moveToExperimental(exit);
       return;
     }
 
@@ -53,7 +53,7 @@ class Miner extends BaseUnit {
     if (container &&
         Sources.getMinersFor(source).length === 1 &&
         creep.pos.getRangeTo(container) > 0) {
-      creep.moveToWithTrail(container);
+      creep.moveToExperimental(container);
       return;
     }
 
@@ -69,7 +69,7 @@ class Miner extends BaseUnit {
     // 2. Mine if we have enough empty capacity
     if (canCarryMore || container) {
       if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
-        creep.moveToWithTrail(source);
+        creep.moveToExperimental(source);
       }
     }
 
@@ -90,7 +90,7 @@ class Miner extends BaseUnit {
       } else if (!canCarryMore) {
         const result = creep.transfer(container, RESOURCE_ENERGY, creep.carry.energy);
         if (result === ERR_NOT_IN_RANGE) {
-          creep.moveToWithTrail(container);
+          creep.moveToExperimental(container);
         }
       }
     }

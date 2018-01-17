@@ -50,7 +50,7 @@ class Mule extends BaseUnit {
       this.setTask(
         new Task(Task.PICKUP, this.getHaulSource(), creep.carryCapacity)
       );
-      this.creep.moveToWithTrail(this.getHaulSource());
+      this.creep.moveToExperimental(this.getHaulSource());
     } else if (result == 'DONE') {
       // Do nothing - wait another turn
     }

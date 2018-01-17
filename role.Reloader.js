@@ -58,7 +58,7 @@ class Reloader extends BaseUnit {
       this.setTask(
         new Task(Task.PICKUP, creep.room.storage, creep.carryCapacity)
       );
-      creep.moveToWithTrail(creep.room.storage);
+      creep.moveToExperimental(creep.room.storage);
     } else if (result == 'DONE') {
       // Do nothing - wait another turn
     }

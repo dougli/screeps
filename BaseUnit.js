@@ -104,7 +104,7 @@ class BaseUnit {
     if (task.target instanceof StructureContainer ||
         task.target instanceof StructureStorage) {
       if (!creep.pos.isNearTo(task.target)) {
-        creep.moveToWithTrail(task.target);
+        creep.moveToExperimental(task.target);
         return OK;
       }
 
@@ -120,10 +120,10 @@ class BaseUnit {
         return DONE;
       }
     } else if (task.target instanceof Creep) {
-      creep.moveToWithTrail(task.target);
+      creep.moveToExperimental(task.target);
       return OK;
     } else {
-      creep.moveToWithTrail(task.target);
+      creep.moveToExperimental(task.target);
       return OK;
     }
   }
@@ -155,7 +155,7 @@ class BaseUnit {
         return DONE;
       }
     case ERR_NOT_IN_RANGE:
-      creep.moveToWithTrail(target);
+      creep.moveToExperimental(target);
       return OK;
     case ERR_INVALID_TARGET:
     case ERR_FULL:
@@ -195,7 +195,7 @@ class BaseUnit {
   //       ? NEED_ENERGY
   //       : true;
   //   case ERR_NOT_IN_RANGE:
-  //     creep.moveToWithTrail(task.target);
+  //     creep.moveToExperimental(task.target);
   //     return true;
   //   case ERR_INVALID_TARGET:
   //   default:
@@ -214,10 +214,10 @@ class BaseUnit {
         ? NEED_ENERGY
         : OK;
     case ERR_NOT_IN_RANGE:
-      creep.moveToWithTrail(task.target);
+      creep.moveToExperimental(task.target);
       return OK;
     case ERR_NOT_ENOUGH_RESOURCES:
-      creep.moveToWithTrail(task.target);
+      creep.moveToExperimental(task.target);
       return NEED_ENERGY;
     case ERR_INVALID_TARGET:
     default:

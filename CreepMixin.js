@@ -2,6 +2,7 @@ const Task = require('Task');
 const Paths = require('Paths');
 
 const MAX_REUSE_PATH = 10;
+const BLOCKED = 'BLOCKED';
 
 const MOVE_DELTA = {
   [TOP]: {x: 0, y: -1},
@@ -23,19 +24,28 @@ function sameTarget(creep, b) {
   if (!a) {
     return false;
   }
+  // If the target is a creep and we're not in the same room, never repath
+  if (b.id && a.id === b.id && a.r === b.r && creep.room.name !== a.r) {
+    return true;
+  }
+
   return a.x === b.x && a.y === b.y && a.r === b.r && a.d === b.d;
 }
 
-function calculatePath(creep, target) {
+function calculatePath(creep, target, freshMatrix) {
   const dest = {
     pos: new RoomPosition(target.x, target.y, target.r),
     range: target.d
   };
-  const path = Paths.search(creep.pos, dest);
+  const opts = {freshMatrix: !!freshMatrix};
+  const path = Paths.search(creep.pos, dest, opts);
   creep.memory._path = {r: 0, t: target, p: Paths.serialize(path)};
 }
 
 function moveByPath(creep) {
+  if (creep.fatigue > 0) {
+    return ERR_TIRED;
+  }
   const mem = creep.memory._path;
   let path = mem.p;
   let roomIndex = mem.r;
@@ -67,13 +77,26 @@ function moveByPath(creep) {
 
   if (!found) {
     return ERR_NOT_FOUND;
+  } else if (mem.r === roomIndex && mem.i === index) {
+    // We were supposed to move last turn but failed likely due to blockage. Repath
+    return BLOCKED;
   }
+  delete mem.i;
 
   mem.r = roomIndex;
-  if (index < subpath[3].length) {
-    return creep.move(subpath[3][index]);
+  if (index >= subpath[3].length) {
+    if (roomIndex === path.length -1) {
+      delete creep.memory._path;
+      return ERR_NOT_FOUND;
+    }
+    return OK;
   }
-  return OK;
+
+  const result = creep.move(subpath[3][index]);
+  if (result === OK) {
+    mem.i = index;
+  }
+  return result;
 }
 
 module.exports = {
@@ -93,31 +116,32 @@ module.exports = {
       }
 
       let result = moveByPath(this);
-      if (result == ERR_NOT_FOUND) {
-        calculatePath(this, target);
+      if (result === BLOCKED) {
+        calculatePath(this, target, true);
         result = moveByPath(this);
       }
       return result;
     }
 
-    Creep.prototype.moveToWithTrail = function(target, opts) {
-      if (!opts) {
-        opts = {};
-      }
-      opts.reusePath = opts.reusePath || MAX_REUSE_PATH;
-      this.moveTo(target, opts);
-    };
-
     Creep.prototype.moveToExperimental = function(dest) {
+      const destPos = dest && (dest instanceof RoomPosition ? dest : dest.pos);
+      if (this.pos.isNearTo(destPos)) {
+        return this.move(this.pos.getDirectionTo(destPos));
+      }
+
       let target = null;
       if (dest instanceof Creep) {
         target = makeTarget(dest.pos.x, dest.pos.y, dest.pos.roomName, 1);
         target.id = dest.id;
+      } else if (dest instanceof StructureContainer) {
+        // Force container range to be 1 since we can pickup from afar
+        target = makeTarget(dest.pos.x, dest.pos.y, dest.pos.roomName, 1);
       } else if (dest instanceof RoomObject) {
         const range = Paths.isWalkable(dest) ? 0 : 1;
         target = makeTarget(dest.pos.x, dest.pos.y, dest.pos.roomName, range);
       } else if (dest instanceof RoomPosition) {
-        target = makeTarget(dest.x, dest.y, dest.roomName, 0);
+        const range = Game.map.getTerrainAt(dest) === 'wall' ? 1 : 0;
+        target = makeTarget(dest.x, dest.y, dest.roomName, range);
       } else {
         return ERR_INVALID_TARGET;
       }
@@ -127,10 +151,11 @@ module.exports = {
       }
 
       let result = moveByPath(this);
-      if (result == ERR_NOT_FOUND) {
-        calculatePath(this, target);
+      if (result === BLOCKED) {
+        calculatePath(this, target, true);
         result = moveByPath(this);
       }
+
       return result;
     }
 
