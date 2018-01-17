@@ -5,6 +5,7 @@ const ScoutMission = require('ScoutMission');
 const Sources = require('Sources');
 const Profiler = require('Profiler');
 
+const SCOUT_MIN_RCL = 3;
 const SCOUT_DELAY = 23;
 const ME = 'dougli';
 
@@ -26,6 +27,7 @@ const Overseer = {
       // Scout rooms if we haven't seen it in a while
       if (mine &&
           Game.time % SCOUT_DELAY === 0 &&
+          room.controller.level >= SCOUT_MIN_RCL &&
           !Rooms.getScoutMissionFrom(room) &&
           ScoutMission.shouldScout(name)) {
         ScoutMission.create(name);
