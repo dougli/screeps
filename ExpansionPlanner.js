@@ -38,7 +38,11 @@ var ExpansionPlanner = {
             harvestRoom: room.name
           };
         } else {
-          return {action: 'spawn_miner', harvestTarget: source.id};
+          return {
+            action: 'spawn_miner',
+            harvestTarget: source.id,
+            harvestRoom: room.name
+          };
         }
       } else if (!Sources.getMulesFor(source).length) {
         if (!hasMule) {
@@ -51,7 +55,11 @@ var ExpansionPlanner = {
     // Then, full expand out all miners as needed
     for (let source of sources) {
       if (Sources.getRemainingMineSpeed(source) > 1) {
-        return {action: 'spawn_miner', harvestTarget: source.id};
+        return {
+          action: 'spawn_miner',
+          harvestTarget: source.id,
+          harvestRoom: room.name
+        };
       }
       if (Sources.getRemainingMuleSpeed(source) > 1) {
         return {action: 'spawn_mule', haulTarget: source.id};

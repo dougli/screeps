@@ -36,14 +36,11 @@ class Miner extends BaseUnit {
     var source = this.getMineSource();
     if (!source) {
       // Find room of source
-      const roomName = this.creep.memory.harvestRoom;
-      if (!roomName) { // Migration plan for old creeps
-        creep.suicide();
-        return;
-      }
-      const exitDir = Game.map.findExit(creep.room, roomName);
-      const exit = creep.pos.findClosestByRange(exitDir);
-      creep.moveToExperimental(exit);
+      const pos = Sources.getSourcePosition(
+        this.creep.memory.harvestRoom,
+        this.creep.memory.harvestTarget
+      );
+      creep.moveToExperimental(pos);
       return;
     }
 

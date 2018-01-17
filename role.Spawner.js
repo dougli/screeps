@@ -104,7 +104,7 @@ var Spawner = {
     if (plan.action == 'spawn_miner') {
       Spawner.spawnMiner(spawn, plan);
     } else if (plan.action == 'spawn_minimum_miner') {
-      Spawner.spawnMinimumMiner(spawn, plan.harvestTarget);
+      Spawner.spawnMinimumMiner(spawn, plan);
     } else if (plan.action == 'spawn_mule') {
       Spawner.spawnMule(spawn, plan.haulTarget);
     } else if (plan.action == 'spawn_minimum_mule') {

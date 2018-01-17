@@ -22,10 +22,10 @@ class RemoteMiningMission extends Mission {
 
   run() {
     this._reserve();
-    // const memory = Memory.rooms[this.memory.room];
-    // for (const id in memory.sources) {
-    //   this._mine(id, memory.sources[id]);
-    // }
+    const memory = Memory.rooms[this.memory.room];
+    for (const id in memory.sources) {
+      this._mine(id, memory.sources[id]);
+    }
   }
 
   _reserve() {

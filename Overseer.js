@@ -13,8 +13,16 @@ const Overseer = {
   run: function() {
     for (const name in Game.rooms) {
       const room = Game.rooms[name];
-      const memory = Memory.rooms[name];
+      let memory = Memory.rooms[name];
       const mine = room && room.controller && room.controller.my;
+
+      if (!memory || !memory.lastSeen) {
+        Memory.rooms[name] = {};
+        memory = Memory.rooms[name];
+        room.find(FIND_SOURCES).forEach(source => {
+          Sources.getMemoryFor(source);
+        });
+      }
 
       // If it's my room, see if I have to defend it
       if (mine && !Rooms.getDefenseMission(room)) {
@@ -31,12 +39,6 @@ const Overseer = {
           !Rooms.getScoutMissionFrom(room) &&
           ScoutMission.shouldScout(name)) {
         ScoutMission.create(name);
-      }
-
-      if (!memory || !memory.lastSeen) {
-        room.find(FIND_SOURCES).forEach(source => {
-          Sources.getMemoryFor(source);
-        });
       }
 
       const owner = Controllers.getOwner(room.controller);

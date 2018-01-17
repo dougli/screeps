@@ -1,3 +1,5 @@
+const Paths = require('Paths');
+
 class Sources {
   /**
    * Returns the container that represents this source
@@ -83,13 +85,43 @@ class Sources {
       filter: {structureType: STRUCTURE_SPAWN}
     })[0];
 
-    const path = source.pos.findPathTo(spawn, {ignoreCreeps: true});
-    const pos = path[0];
-    if (!pos) {
-      Game.notify('Can\'t build source container at room ' + room.name, 1440);
+    let pos = null;
+
+    if (spawn) {
+      const path = source.pos.findPathTo(spawn, {ignoreCreeps: true});
+      pos = path[0];
+      if (!pos) {
+        Game.notify('Can\'t build source container at room ' + room.name, 1440);
+      }
+    } else {
+      const nearby = room.lookForAtArea(
+        LOOK_TERRAIN,
+        source.pos.y - 1,
+        source.pos.x - 1,
+        source.pos.y + 1,
+        source.pos.x + 1,
+        true);
+
+      for (let terrain of nearby) {
+        if (terrain.terrain !== 'wall') {
+          pos = new RoomPosition(terrain.x, terrain.y, room.name);
+          break;
+        }
+      }
     }
+    pos && Sources._constructContainerAtPos(source, pos);
+  }
+
+  static _constructContainerAtPos(source, pos) {
+    const room = source.room;
 
     // If the site is already there but not in memory
+    const struct = room.lookForAt(LOOK_STRUCTURES, pos.x, pos.y)[0];
+    if (struct && struct.structureType == STRUCTURE_CONTAINER) {
+      Sources.getMemoryFor(source).container = struct.id;
+      return;
+    }
+
     const site = room.lookForAt(LOOK_CONSTRUCTION_SITES, pos.x, pos.y)[0];
     if (site && site.my && site.structureType == STRUCTURE_CONTAINER) {
       Sources.getMemoryFor(source).containerSite = {x: pos.x, y: pos.y};
@@ -114,9 +146,19 @@ class Sources {
 
     // Migration code
     if (!roomMemory.sources[source.id].x) {
-      roomMemory.sources[source.id] = {x: source.pos.x, y: source.pos.y};
+      roomMemory.sources[source.id].x = source.pos.x;
+      roomMemory.sources[source.id].y = source.pos.y;
     }
     return roomMemory.sources[source.id];
+  }
+
+  static getSourcePosition(roomName, id) {
+    let mem = Memory.rooms[roomName];
+    if (mem && mem.sources && mem.sources[id] && mem.sources[id].x) {
+      let sourceMem = mem.sources[id];
+      return new RoomPosition(sourceMem.x, sourceMem.y, roomName);
+    }
+    return null;
   }
 }
 
