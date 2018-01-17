@@ -109,7 +109,12 @@ class Sources {
       roomMemory.sources = {};
     }
     if (!roomMemory.sources[source.id]) {
-      roomMemory.sources[source.id] = {};
+      roomMemory.sources[source.id] = {x: source.pos.x, y: source.pos.y};
+    }
+
+    // Migration code
+    if (!roomMemory.sources[source.id].x) {
+      roomMemory.sources[source.id] = {x: source.pos.x, y: source.pos.y};
     }
     return roomMemory.sources[source.id];
   }

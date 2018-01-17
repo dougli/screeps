@@ -20,18 +20,16 @@ class Claimer extends BaseUnit {
     const targetRoom = Game.rooms[this.getReserveTarget()];
 
     // If we're not in the right room yet, get there
-    if (this.creep.room.name != this.getReserveTarget()) {
-      const dest = targetRoom
-        ? targetRoom.controller
-        : new RoomPosition(25, 25, this.getReserveTarget());
-      this.creep.moveTo(dest, {reusePath: REUSE_PATH});
+    if (!targetRoom) {
+      this.creep.moveToRoom(this.getReserveTarget());
       return;
     }
 
     // Otherwise start reserving
     const result = this.creep.reserveController(targetRoom.controller);
     if (result === ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(targetRoom.controller);
+      this.creep.moveToExperimental(targetRoom.controller);
+      return;
     }
 
     if (!targetRoom.controller.sign ||
