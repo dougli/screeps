@@ -56,8 +56,6 @@ const Paths = {
       plainCost: opts.ignoreTerrain ? 1 : 2,
 
       swampCost: opts.ignoreTerrain ? 1 : 10,
-      // Limit our cost if we are in the same room
-      maxOps: origin.roomName === goal.pos.roomName ? 500 : 2000,
 
       roomCallback: (roomName) => {
         const mem = Memory.rooms[roomName];
