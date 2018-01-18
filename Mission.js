@@ -40,7 +40,7 @@ class Mission {
 
   concludeSuccessfulMission() {
     const message = 'Mission: ' + this.name + ' was successful!';
-    Game.notify(message);
+    Game.notify(message, 1440);
     console.log(message);
     delete Memory.missions[this.id];
     delete Game.missions[this.id];
