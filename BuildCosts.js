@@ -25,10 +25,18 @@ class BuildCosts {
       return sum + BODYPART_COST[part];
     }, 0);
 
+    const nonToughSegments = segment.filter((part) => {
+      return part !== TOUGH;
+    });
+    const numToughSegments = segment.length - nonToughSegments.length;
+
     const result = [];
-    const segments = Math.min(Math.floor(capacity / segmentCost), maxSegments);
-    for (let ii = 0; ii < segments; ii++) {
-      Array.prototype.push.apply(result, segment);
+    const repeats = Math.min(Math.floor(capacity / segmentCost), maxSegments);
+    for (let ii = 0; ii < repeats * numToughSegments; ii++) {
+      result.push(TOUGH);
+    }
+    for (let ii = 0; ii < repeats; ii++) {
+      Array.prototype.push.apply(result, nonToughSegments);
     }
     return result;
   }

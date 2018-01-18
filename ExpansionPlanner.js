@@ -140,6 +140,13 @@ var ExpansionPlanner = {
         haulRoom: requisition.memory.haulRoom,
         base: requisition.memory.base
       };
+    } else if (requisition && requisition.type === 'defender') {
+      return {
+        action: 'spawn_defender',
+        mission: requisition.mission.id,
+        key: requisition.key,
+        defendTarget: requisition.memory.defendTarget,
+      };
     }
 
     return {};

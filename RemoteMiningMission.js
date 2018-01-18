@@ -24,10 +24,24 @@ class RemoteMiningMission extends Mission {
   }
 
   run() {
+    const room = Game.rooms[this.memory.room];
+    if (room && room.find(FIND_HOSTILE_CREEPS).length > 0) {
+      this._defend();
+      return;
+    }
+
     this._reserve();
     const memory = Memory.rooms[this.memory.room];
     for (const id in memory.sources) {
       this._mine(id, memory.sources[id]);
+    }
+  }
+
+  _defend() {
+    if (!this.creeps.defender) {
+      this.requisitionCreep('defender', 'defender', {
+        defendTarget: this.memory.room,
+      });
     }
   }
 
@@ -41,6 +55,8 @@ class RemoteMiningMission extends Mission {
     const controller = room && room.controller;
     if (!controller) {
       reserveNeeded = true;
+    } else if (controller.my) {
+      reserveNeeded = false;
     } else if (!controller.reservation) {
       reserveNeeded = true;
     } else if (controller.reservation.username !== ME) {

@@ -11,7 +11,7 @@ const Scout = require('role.Scout');
 const Spawner = require('role.Spawner');
 const Tower = require('role.Tower');
 const Upgrader = require('role.Upgrader');
-const BaseLayout = require('BaseLayout');
+const Defender = require('role.Defender');
 
 require('CreepMixin').run();
 require('mixin.Room').run();
@@ -58,6 +58,9 @@ module.exports.loop = function () {
         break;
       case 'claimer':
         units.push(new Claimer(creep));
+        break;
+      case 'defender':
+        units.push(new Defender(creep));
         break;
       default:
         console.log('Unknown creep role ' + creep.memory.role);

@@ -1,10 +1,11 @@
 const Builder = require('role.Builder');
+const Defender = require('role.Defender');
 const ExpansionPlanner = require('ExpansionPlanner');
 const Miner = require('role.Miner');
 const Mule = require('role.Mule');
-const Upgrader = require('role.Upgrader');
-const Reloader = require('role.Reloader');
 const Profiler = require('Profiler');
+const Reloader = require('role.Reloader');
+const Upgrader = require('role.Upgrader');
 
 var NUM_EXTENSIONS = [0, 0, 5, 10, 20, 30, 30, 30, 30];
 
@@ -113,6 +114,18 @@ var Spawner = {
     );
   },
 
+  spawnDefender: function(spawn, plan) {
+    return spawn.spawnCreep(
+      Defender.getIdealBuild(spawn.room.energyCapacityAvailable),
+      Math.random().toString(16).substring(2),
+      {memory: {
+        role: 'defender',
+        defendTarget: plan.defendTarget,
+        mission: plan.mission,
+        missionKey: plan.key,
+      }});
+  },
+
   run: function(spawn) {
     var plan = ExpansionPlanner.getRoomDevelopmentPlan(spawn.room);
     if (plan.action == 'spawn_miner') {
@@ -135,6 +148,8 @@ var Spawner = {
       Spawner.spawnScout(spawn, plan.mission, plan.key);
     } else if (plan.action == 'spawn_claimer') {
       Spawner.spawnClaimer(spawn, plan.mission, plan.key);
+    } else if (plan.action == 'spawn_defender') {
+      Spawner.spawnDefender(spawn, plan);
     }
   }
 };
