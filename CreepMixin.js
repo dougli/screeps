@@ -39,7 +39,37 @@ function calculatePath(creep, target, freshMatrix) {
   };
   const opts = {freshMatrix: !!freshMatrix};
   const path = Paths.search(creep.pos, dest, opts);
-  creep.memory._path = {r: 0, t: target, p: Paths.serialize(path)};
+  creep.memory._path = {
+    index: -1,
+    stuck: 0,
+    target: target,
+    path: Paths.serialize(path),
+    lastPos: null
+  };
+}
+
+function isSamePos(mem, creepPos) {
+  if (!mem) {
+    return false;
+  }
+  return mem.x === creepPos.x &&
+    mem.y === creepPos.y &&
+    mem.room === creepPos.roomName;
+}
+
+function getBoundaryPos(pos) {
+  if (!pos) {
+    return null;
+  } else if (pos.x == 0) {
+    return {x: 49, y: pos.y, room: Game.map.describeExits(pos.room)[LEFT]};
+  } else if (pos.x == 49) {
+    return {x: 0, y: pos.y, room: Game.map.describeExits(pos.room)[RIGHT]};
+  } else if (pos.y == 0) {
+    return {x: pos.x, y: 49, room: Game.map.describeExits(pos.room)[TOP]};
+  } else if (pos.y == 49) {
+    return {x: pos.x, y: 0, room: Game.map.describeExits(pos.room)[BOTTOM]};
+  }
+  return null;
 }
 
 function moveByPath(creep) {
@@ -47,56 +77,31 @@ function moveByPath(creep) {
     return ERR_TIRED;
   }
   const mem = creep.memory._path;
-  let path = mem.p;
-  let roomIndex = mem.r;
 
-  // If the creep has advanced into another room
-  if (path.length > roomIndex + 1 &&
-      creep.room.name === path[roomIndex + 1][0]) {
-    roomIndex++;
-  } else if (creep.room.name !== path[roomIndex][0]) {
-    return ERR_NOT_FOUND;
-  }
-  const subpath = path[roomIndex];
-
-  // Update pathIndex to reflect the latest status
-  let pos = {x: subpath[1], y: subpath[2]};
-  let index = 0;
-  let found = false;
-  do {
-    if (creep.pos.x === pos.x && creep.pos.y === pos.y) {
-      found = true;
-      break;
-    }
-
-    const dir = MOVE_DELTA[subpath[3][index]];
-    pos.x += dir.x;
-    pos.y += dir.y;
-    index++;
-  } while (index < subpath[3].length);
-
-  if (!found) {
-    return ERR_NOT_FOUND;
-  } else if (mem.r === roomIndex && mem.i === index) {
-    // We were supposed to move last turn but failed likely due to blockage. Repath
+  // Migration code
+  if (!('index' in mem)) {
+    delete creep.memory._path;
     return BLOCKED;
   }
-  delete mem.i;
 
-  mem.r = roomIndex;
-  if (index >= subpath[3].length) {
-    if (roomIndex === path.length -1) {
-      delete creep.memory._path;
-      return ERR_NOT_FOUND;
-    }
-    return OK;
+  let lastPos = mem.lastPos;
+
+  let pos = creep.pos;
+  if (isSamePos(lastPos, pos) || isSamePos(getBoundaryPos(lastPos), pos)) {
+    mem.stuck++;
+    return BLOCKED;
+  } else {
+    mem.stuck = 0;
+    mem.lastPos = {x: pos.x, y: pos.y, room: pos.roomName};
+    mem.index++;
   }
 
-  const result = creep.move(subpath[3][index]);
-  if (result === OK) {
-    mem.i = index;
+  if (mem.index >= mem.path.length) {
+    delete creep.memory._path;
+    return;
   }
-  return result;
+
+  return creep.move(mem.path[mem.index]);
 }
 
 module.exports = {
@@ -125,25 +130,17 @@ module.exports = {
 
     Creep.prototype.moveToExperimental = function(dest) {
       const destPos = dest && (dest instanceof RoomPosition ? dest : dest.pos);
+      if (!destPos) {
+        return ERR_INVALID_TARGET;
+      }
+
       if (this.pos.isNearTo(destPos)) {
         return this.move(this.pos.getDirectionTo(destPos));
       }
 
-      let target = null;
+      let target = makeTarget(destPos.x, destPos.y, destPos.roomName, 1);
       if (dest instanceof Creep) {
-        target = makeTarget(dest.pos.x, dest.pos.y, dest.pos.roomName, 1);
         target.id = dest.id;
-      } else if (dest instanceof StructureContainer) {
-        // Force container range to be 1 since we can pickup from afar
-        target = makeTarget(dest.pos.x, dest.pos.y, dest.pos.roomName, 1);
-      } else if (dest instanceof RoomObject) {
-        const range = Paths.isWalkable(dest) ? 0 : 1;
-        target = makeTarget(dest.pos.x, dest.pos.y, dest.pos.roomName, range);
-      } else if (dest instanceof RoomPosition) {
-        const range = Game.map.getTerrainAt(dest) === 'wall' ? 1 : 0;
-        target = makeTarget(dest.x, dest.y, dest.roomName, range);
-      } else {
-        return ERR_INVALID_TARGET;
       }
 
       if (!sameTarget(this, target)) {

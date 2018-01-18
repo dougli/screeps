@@ -121,18 +121,14 @@ const Paths = {
   },
 
   serialize: function(path) {
-    const result = [];
-
+    let result = '';
     let room = null;
     let prev = null;
-    let curr = null;
     for (const pos of path) {
       if (pos.roomName != room) {
-        curr = [pos.roomName, pos.x, pos.y, ''];
         room = pos.roomName;
-        result.push(curr);
       } else if (prev) {
-        curr[3] += prev.getDirectionTo(pos);
+        result += prev.getDirectionTo(pos);
       }
       prev = pos;
     }
