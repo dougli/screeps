@@ -46,9 +46,19 @@ var ExpansionPlanner = {
         }
       } else if (!Sources.getMulesFor(source).length) {
         if (!hasMule) {
-          return {action: 'spawn_minimum_mule', haulTarget: source.id};
+          return {
+            action: 'spawn_minimum_mule',
+            haulTarget: source.id,
+            haulRoom: room.name,
+            base: room.name
+          };
         }
-        return {action: 'spawn_recovery_mule', haulTarget: source.id};
+        return {
+          action: 'spawn_recovery_mule',
+          haulTarget: source.id,
+          haulRoom: room.name,
+          base: room.name
+        };
       }
     }
 
@@ -62,7 +72,12 @@ var ExpansionPlanner = {
         };
       }
       if (Sources.getRemainingMuleSpeed(source) > 1) {
-        return {action: 'spawn_mule', haulTarget: source.id};
+        return {
+          action: 'spawn_mule',
+          haulTarget: source.id,
+          haulRoom: room.name,
+          base: room.name
+        };
       }
     }
 
@@ -115,6 +130,15 @@ var ExpansionPlanner = {
         key: requisition.key,
         harvestTarget: requisition.memory.harvestTarget,
         harvestRoom: requisition.memory.harvestRoom
+      };
+    } else if (requisition && requisition.type === 'mule') {
+      return {
+        action: 'spawn_mule',
+        mission: requisition.mission.id,
+        key: requisition.key,
+        haulTarget: requisition.memory.haulTarget,
+        haulRoom: requisition.memory.haulRoom,
+        base: requisition.memory.base
       };
     }
 

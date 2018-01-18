@@ -4,8 +4,11 @@ const RESERVE_NEEDED = 4500;
 const ME = 'dougli';
 
 class RemoteMiningMission extends Mission {
-  static create(roomName) {
-    return new RemoteMiningMission(null, {type: 'remote_mine', room: roomName});
+  static create(base, roomName) {
+    return new RemoteMiningMission(
+      null,
+      {type: 'remote_mine', base, room: roomName}
+    );
   }
 
   static deserialize(id, memory) {
@@ -61,6 +64,14 @@ class RemoteMiningMission extends Mission {
         'miner',
         {harvestTarget: sourceID, harvestRoom: this.memory.room}
       );
+    }
+
+    if (!this.creeps[muleID]) {
+      this.requisitionCreep(muleID, 'mule', {
+        haulTarget: sourceID,
+        haulRoom: this.memory.room,
+        base: this.memory.base
+      });
     }
   }
 }

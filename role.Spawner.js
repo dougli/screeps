@@ -39,18 +39,25 @@ var Spawner = {
       }});
   },
 
-  spawnMule: function(spawn, haulTarget, minimum = false) {
+  spawnMule: function(spawn, plan, minimum = false) {
     const parts = minimum
           ? [MOVE, CARRY]
           : Mule.getIdealBuild(spawn.room.energyCapacityAvailable);
     return spawn.spawnCreep(
       parts,
       Math.random().toString(16).substring(2),
-      {memory: {role: 'mule', haulTarget}});
+      {memory: {
+        role: 'mule',
+        haulTarget: plan.haulTarget,
+        haulRoom: plan.haulRoom,
+        base: plan.base,
+        mission: plan.mission,
+        missionKey: plan.key,
+      }});
   },
 
-  spawnRecoveryMule: function(spawn, haulTarget) {
-    const result = Spawner.spawnMule(spawn, haulTarget, false);
+  spawnRecoveryMule: function(spawn, plan) {
+    const result = Spawner.spawnMule(spawn, plan, false);
     if (result === OK) {
       return OK;
     }
@@ -58,7 +65,14 @@ var Spawner = {
     return spawn.spawnCreep(
       [MOVE, CARRY, MOVE, CARRY, MOVE, CARRY],
       Math.random().toString(16).substring(2),
-      {memory: {role: 'mule', haulTarget}});
+      {memory: {
+        role: 'mule',
+        haulTarget: plan.haulTarget,
+        haulRoom: plan.haulRoom,
+        base: plan.base,
+        mission: plan.mission,
+        missionKey: plan.key,
+      }});
   },
 
   spawnReloader: function(spawn, quadrant) {
@@ -106,11 +120,11 @@ var Spawner = {
     } else if (plan.action == 'spawn_minimum_miner') {
       Spawner.spawnMinimumMiner(spawn, plan);
     } else if (plan.action == 'spawn_mule') {
-      Spawner.spawnMule(spawn, plan.haulTarget);
+      Spawner.spawnMule(spawn, plan);
     } else if (plan.action == 'spawn_minimum_mule') {
-      Spawner.spawnMule(spawn, plan.haulTarget, true);
+      Spawner.spawnMule(spawn, plan, true);
     } else if (plan.action == 'spawn_recovery_mule') {
-      Spawner.spawnRecoveryMule(spawn, plan.haulTarget);
+      Spawner.spawnRecoveryMule(spawn, plan);
     } else if (plan.action == 'spawn_reloader') {
       Spawner.spawnReloader(spawn, plan.quadrant);
     } else if (plan.action == 'spawn_upgrader') {

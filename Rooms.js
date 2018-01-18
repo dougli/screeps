@@ -110,9 +110,8 @@ class Rooms {
     return result;
   }
 
-  static getDropoffTasks(creep) {
+  static getDropoffTasks(room, pos) {
     let result = [];
-    const room = creep.room;
 
     // First, prioritize storage or spawns & extensions that need juice
     const storage = room.storage;
@@ -135,8 +134,7 @@ class Rooms {
           result.push(new Task(Task.TRANSFER, structure, amount));
         }
       });
-      if (result.length > 0) {
-        const pos = creep.pos;
+      if (result.length > 0 && pos) {
         result = result.sort((a, b) => {
           const distA = pos.getRangeTo(a.target);
           const distB = pos.getRangeTo(b.target);

@@ -29,17 +29,27 @@ class Mule extends BaseUnit {
     return this.creep.getActiveBodyparts(CARRY) * 50 / 60;
   }
 
+  _setPickupTask() {
+    const source = this.getHaulSource();
+    let task = null;
+    if (source) {
+      task = new Task(Task.PICKUP, this.getHaulSource(), this.creep.carryCapacity);
+    } else {
+      task = new Task(Task.SCOUT, this.creep.memory.haulRoom);
+    }
+    this.setTask(task);
+  }
+
   _tick() {
     const creep = this.creep;
 
     if (!this.hasTask()) {
       if (creep.carry.energy === 0) {
-        this.setTask(
-          new Task(Task.PICKUP, this.getHaulSource(), creep.carryCapacity)
-        );
+        this._setPickupTask();
       } else {
+        let base = Game.rooms[creep.memory.base] || creep.room;
         // Find a dropoff task
-        this.setTask(Rooms.getDropoffTasks(this.creep)[0]);
+        this.setTask(Rooms.getDropoffTasks(base, creep.pos)[0]);
       }
     }
 
@@ -47,10 +57,8 @@ class Mule extends BaseUnit {
     if (result == OK) {
       return;
     } else if (result == 'NEED_ENERGY') {
-      this.setTask(
-        new Task(Task.PICKUP, this.getHaulSource(), creep.carryCapacity)
-      );
-      this.creep.moveToExperimental(this.getHaulSource());
+      this._setPickupTask();
+      this._doTask();
     } else if (result == 'DONE') {
       // Do nothing - wait another turn
     }
