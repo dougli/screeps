@@ -3,11 +3,42 @@ const BuildCosts = require('BuildCosts');
 const Task = require('Task');
 const Rooms = require('Rooms');
 const Profiler = require('Profiler');
+const Paths = require('Paths');
+const BaseLayout = require('BaseLayout');
+const Sources = require('Sources');
 
 class Mule extends BaseUnit {
-  static getIdealBuild(capacity) {
-    // Roadless config
-    return BuildCosts.getBestRepeatingBuild([MOVE, CARRY], 12, capacity);
+  static getIdealBuild(baseRoom, sourcePos, energyPerTick) {
+    const room = Game.rooms[baseRoom];
+    if (!room) {
+      return [];
+    }
+
+    const roundTripTicks = Mule.getHaulDistance(baseRoom, sourcePos);
+    const energyTotal = energyPerTick * roundTripTicks;
+    const carryNeeded = Math.ceil(energyTotal / CARRY_CAPACITY) + 1;
+    const capacity = room.energyCapacityAvailable;
+
+    return BuildCosts.getBestRepeatingBuild(
+      [MOVE, CARRY],
+      carryNeeded,
+      capacity
+    );
+  }
+
+  static getHaulDistance(baseRoom, sourcePos) {
+    const room = Game.rooms[baseRoom];
+    if (!room) {
+      return null;
+    }
+
+    const origin = BaseLayout.getBaseCenter(room);
+    const capacity = room.energyCapacityAvailable;
+    return Math.max(1, Paths.search(
+      origin,
+      sourcePos,
+      {ignoreCreeps: true, ignoreRoads: true}
+    ).cost * 2);
   }
 
   constructor(creep) {
@@ -23,10 +54,18 @@ class Mule extends BaseUnit {
     return Game.getObjectById(this.creep.memory.haulTarget);
   }
 
+  getHaulDistance() {
+    const mem = this.creep.memory;
+    if (!mem.haulDistance) {
+      const sourcePos = Sources.getSourcePosition(mem.haulRoom, mem.haulTarget);
+      mem.haulDistance = Mule.getHaulDistance(this.creep.memory.base, sourcePos);
+    }
+    return mem.haulDistance;
+  }
+
   getMuleSpeed() {
-    // Assuming an average round trip takes 60 ticks:
-    // efficiency = carryCapacity / roundTripTime;
-    return this.creep.getActiveBodyparts(CARRY) * 50 / 60;
+    return this.creep.getActiveBodyparts(CARRY) * CARRY_CAPACITY /
+      this.getHaulDistance();
   }
 
   _setPickupTask() {

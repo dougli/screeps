@@ -42,6 +42,10 @@ function _cost(o) {
  * ignoreTerrain: boolean - If true, cost of plains and swamps will be set to
  *     1. Useful for road building or for scout units that only have move
  *     parts. The default is false.
+ *
+ * ignoreRoads: boolean - If true, cost of plains and swamps will be set to 1
+ *     and 5, respectively. Useful for creeps designed to go off-road (1 MOVE
+ *     part per other part). The default is false.
  */
 const Paths = {
   search: function(origin, goal, options) {
@@ -49,13 +53,14 @@ const Paths = {
       ignoreHostile: [],
       ignoreCreeps: false,
       ignoreTerrain: false,
+      ignoreRoads: false,
       freshMatrix: false,
     }, options);
 
     const result = PathFinder.search(origin, goal, {
-      plainCost: opts.ignoreTerrain ? 1 : 2,
+      plainCost: opts.ignoreTerrain ? 1 : (opts.ignoreRoads ? 1 : 2),
 
-      swampCost: opts.ignoreTerrain ? 1 : 10,
+      swampCost: opts.ignoreTerrain ? 1 : (opts.ignoreRoads ? 5 : 10),
 
       roomCallback: (roomName) => {
         const mem = Memory.rooms[roomName];
@@ -80,7 +85,7 @@ const Paths = {
     });
 
     result.path.unshift(origin);
-    return result.path;
+    return result;
   },
 
   _getStructureMatrix: function(roomName, freshMatrix) {

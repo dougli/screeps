@@ -6,6 +6,7 @@ const Mule = require('role.Mule');
 const Profiler = require('Profiler');
 const Reloader = require('role.Reloader');
 const Upgrader = require('role.Upgrader');
+const Sources = require('Sources');
 
 var NUM_EXTENSIONS = [0, 0, 5, 10, 20, 30, 30, 30, 30];
 
@@ -41,9 +42,14 @@ var Spawner = {
   },
 
   spawnMule: function(spawn, plan, minimum = false) {
+    const sourcePos = Sources.getSourcePosition(plan.haulRoom, plan.haulTarget);
+    if (!sourcePos) {
+      return null;
+    }
+
     const parts = minimum
           ? [MOVE, CARRY]
-          : Mule.getIdealBuild(spawn.room.energyCapacityAvailable);
+          : Mule.getIdealBuild(plan.base, sourcePos, 10);
     return spawn.spawnCreep(
       parts,
       Math.random().toString(16).substring(2),

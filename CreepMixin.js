@@ -37,8 +37,13 @@ function calculatePath(creep, target, freshMatrix) {
     pos: new RoomPosition(target.x, target.y, target.r),
     range: target.d
   };
+
   const opts = {freshMatrix: !!freshMatrix};
-  const path = Paths.search(creep.pos, dest, opts);
+  if (creep.getActiveBodyparts(MOVE) * 2 >= creep.body.length) {
+    opts.ignoreRoads = true;
+  }
+
+  const path = Paths.search(creep.pos, dest, opts).path;
   creep.memory._path = {
     index: -1,
     stuck: 0,
