@@ -171,10 +171,10 @@ class BaseLayout {
       return ['SW'];
     case 5:
     case 6:
-      return ['SW', 'SE'];
+      return ['SW', 'SE', 'NW'];
     case 7:
     case 8:
-      return ['SW', 'SE', 'NE'];
+      return ['SW', 'SE', 'NE', 'NW'];
     }
 
     return [];
