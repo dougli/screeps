@@ -18,13 +18,17 @@ BUILD_COSTS[MOVE] = 50;
 BUILD_COSTS[CARRY] = 50;
 
 var Spawner = {
-  spawnMinimumMiner: function(spawn, harvestTarget) {
+  spawnMinimumMiner: function(spawn, plan) {
     if (spawn.room.energyAvailable < 400 ||
-        Spawner.spawnMiner(spawn, {harvestTarget}) !== OK) {
+        Spawner.spawnMiner(spawn, plan) !== OK) {
       return spawn.spawnCreep(
         [MOVE, CARRY, WORK],
         Math.random().toString(16).substring(2),
-        {memory: {role: 'miner', harvestTarget}});
+        {memory: {
+          role: 'miner',
+          harvestTarget: plan.harvestTarget,
+          harvestRoom: plan.harvestRoom,
+        }});
     }
   },
 
