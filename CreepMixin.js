@@ -20,7 +20,7 @@ function makeTarget(x, y, name, range) {
 }
 
 function sameTarget(creep, b) {
-  const a = creep.memory._path && creep.memory._path.t;
+  const a = creep.memory._path && creep.memory._path.target;
   if (!a) {
     return false;
   }
@@ -77,13 +77,6 @@ function moveByPath(creep) {
     return ERR_TIRED;
   }
   const mem = creep.memory._path;
-
-  // Migration code
-  if (!('index' in mem)) {
-    delete creep.memory._path;
-    return BLOCKED;
-  }
-
   let lastPos = mem.lastPos;
 
   let pos = creep.pos;
