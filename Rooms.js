@@ -4,7 +4,7 @@ const BaseLayout = require('BaseLayout');
 
 const MIN_STORAGE_ENERGY = 1000;
 const TARGET_STORAGE_ENERGY = 50000;
-const TERMINAL_ENERGY = 5000;
+const TERMINAL_ENERGY = 10000;
 
 class Rooms {
   static getBuilderFor(room) {
