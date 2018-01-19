@@ -1,6 +1,7 @@
 const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
 const Rooms = require('Rooms');
+const Profiler = require('Profiler');
 
 class Builder extends BaseUnit {
   static getIdealBuild(energy) {
@@ -45,5 +46,7 @@ class Builder extends BaseUnit {
     }
   }
 }
+
+Profiler.registerClass(Builder, 'Builder');
 
 module.exports = Builder;

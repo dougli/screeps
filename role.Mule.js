@@ -7,6 +7,8 @@ const Paths = require('Paths');
 const BaseLayout = require('BaseLayout');
 const Sources = require('Sources');
 
+const HAUL_DISTANCE = {};
+
 class Mule extends BaseUnit {
   static getIdealBuild(baseRoom, sourcePos, energyPerTick) {
     const room = Game.rooms[baseRoom];
@@ -32,13 +34,20 @@ class Mule extends BaseUnit {
       return null;
     }
 
-    const origin = BaseLayout.getBaseCenter(room);
-    const capacity = room.energyCapacityAvailable;
-    return Math.max(1, Paths.search(
-      origin,
-      sourcePos,
-      {ignoreCreeps: true, ignoreRoads: true}
-    ).cost * 2);
+    const cacheKey = [baseRoom, sourcePos.x, sourcePos.y, sourcePos.roomName]
+          .join(',');
+
+    if (!HAUL_DISTANCE[cacheKey]) {
+      const origin = BaseLayout.getBaseCenter(room);
+      const capacity = room.energyCapacityAvailable;
+      HAUL_DISTANCE[cacheKey] = Math.max(1, Paths.search(
+        origin,
+        sourcePos,
+        {ignoreCreeps: true, ignoreRoads: true}
+      ).cost * 2);
+    }
+
+    return HAUL_DISTANCE[cacheKey];
   }
 
   constructor(creep) {

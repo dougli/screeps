@@ -31,7 +31,11 @@ class BuildCosts {
     const numToughSegments = segment.length - nonToughSegments.length;
 
     const result = [];
-    const repeats = Math.min(Math.floor(capacity / segmentCost), maxSegments);
+    const repeats = Math.min(
+      Math.floor(capacity / segmentCost),
+      maxSegments,
+      Math.floor(MAX_CREEP_SIZE / segment.length)
+    );
     for (let ii = 0; ii < repeats * numToughSegments; ii++) {
       result.push(TOUGH);
     }

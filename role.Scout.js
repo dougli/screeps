@@ -1,5 +1,6 @@
 const BaseUnit = require('BaseUnit');
 const Task = require('Task');
+const Profiler = require('Profiler');
 
 const PATH_REUSE = 20;
 
@@ -23,5 +24,7 @@ class Scout extends BaseUnit {
     this._doTask();
   }
 }
+
+Profiler.registerClass(Scout, 'Scout');
 
 module.exports = Scout;

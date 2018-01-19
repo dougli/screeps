@@ -8,15 +8,6 @@ const Reloader = require('role.Reloader');
 const Upgrader = require('role.Upgrader');
 const Sources = require('Sources');
 
-var NUM_EXTENSIONS = [0, 0, 5, 10, 20, 30, 30, 30, 30];
-
-const MULE_MAX_CARRY = 20;
-
-var BUILD_COSTS = {};
-BUILD_COSTS[WORK] = 100;
-BUILD_COSTS[MOVE] = 50;
-BUILD_COSTS[CARRY] = 50;
-
 var Spawner = {
   spawnMinimumMiner: function(spawn, plan) {
     if (spawn.room.energyAvailable < 400 ||
@@ -137,6 +128,10 @@ var Spawner = {
   },
 
   run: function(spawn) {
+    if (spawn.spawning) {
+      return;
+    }
+
     var plan = ExpansionPlanner.getRoomDevelopmentPlan(spawn.room);
     if (plan.action == 'spawn_miner') {
       Spawner.spawnMiner(spawn, plan);
