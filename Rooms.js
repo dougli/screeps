@@ -91,8 +91,6 @@ class Rooms {
         switch (structure.structureType) {
         case STRUCTURE_TOWER:
           return structure.energy < structure.energyCapacity * 0.8;
-        case STRUCTURE_LINK:
-          return false;
         case STRUCTURE_TERMINAL:
           return structure.store[RESOURCE_ENERGY] < TERMINAL_ENERGY;
         default:

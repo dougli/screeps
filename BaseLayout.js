@@ -225,10 +225,19 @@ class BaseLayout {
       FIND_MY_STRUCTURES
     ).filter((structure) => {
       const pos = structure.pos;
-      return structure.structureType !== STRUCTURE_LINK &&
-        structure.energyCapacity > 0 &&
-        x <= pos.x && pos.x <= x + qSize &&
-        y <= pos.y && pos.y <= y + qSize
+      switch (structure.structureType) {
+      case STRUCTURE_EXTENSION:
+      case STRUCTURE_SPAWN:
+      case STRUCTURE_TOWER:
+      case STRUCTURE_LAB:
+      case STRUCTURE_TERMINAL:
+        break;
+      default:
+        return false;
+      }
+
+      return x <= pos.x && pos.x <= x + qSize &&
+        y <= pos.y && pos.y <= y + qSize;
     });
 
     for (const extra of extraLooks[quadrant]) {
