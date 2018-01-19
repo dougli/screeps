@@ -170,6 +170,7 @@ class BaseLayout {
     case 4:
       return ['SW'];
     case 5:
+      return ['SW', 'SE'];
     case 6:
       return ['SW', 'SE', 'NW'];
     case 7:
@@ -178,6 +179,24 @@ class BaseLayout {
     }
 
     return [];
+  }
+
+  static getBenchPosition(room, quadrant) {
+    const center = BaseLayout.getBaseCenter(room);
+    if (!center) {
+      return null;
+    }
+    switch (quadrant) {
+    case 'NE':
+      return new RoomPosition(center.x + 1, center.y, center.roomName);
+    case 'NW':
+      return new RoomPosition(center.x, center.y - 1, center.roomName);
+    case 'SW':
+      return new RoomPosition(center.x - 1, center.y, center.roomName);
+    case 'SE':
+      return new RoomPosition(center.x, center.y + 1, center.roomName);
+    }
+    return null;
   }
 
   /**

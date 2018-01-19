@@ -87,9 +87,9 @@ class Rooms {
     const quadrant = reloader.getQuadrant();
     const toRefill = BaseLayout.getQuadrantEnergyStructures(room, quadrant)
       .filter((structure) => {
-        switch (structure.type) {
+        switch (structure.structureType) {
         case STRUCTURE_TOWER:
-          return structure.energy < structure.energyCapacity / 2;
+          return structure.energy < structure.energyCapacity * 0.8;
         case STRUCTURE_LINK:
           return false;
         default:

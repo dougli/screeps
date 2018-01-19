@@ -1,3 +1,4 @@
+const BaseLayout = require('BaseLayout');
 const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
 const Profiler = require('Profiler');
@@ -47,7 +48,15 @@ class Reloader extends BaseUnit {
           new Task(Task.PICKUP, creep.room.storage, creep.carryCapacity)
         );
       } else {
-        this.setTask(Rooms.getReloadTasks(this, creep.room)[0]);
+        const reloadTask = Rooms.getReloadTasks(this, creep.room)[0];
+        if (reloadTask) {
+          this.setTask(reloadTask);
+        } else {
+          creep.moveToExperimental(
+            BaseLayout.getBenchPosition(creep.room, this.getQuadrant())
+          );
+          return;
+        }
       }
     }
 
