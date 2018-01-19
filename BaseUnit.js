@@ -130,11 +130,20 @@ class BaseUnit {
 
   _transfer(task) {
     const creep = this.creep;
-    const currentEnergy = creep.carry.energy;
     const target = task.target;
-    const needed = (target instanceof Creep)
-          ? target.carryCapacity - target.carry.energy
-          : target.energyCapacity - target.energy;
+
+    if (target instanceof Creep) {
+      if (creep.pos.isNearTo(target)) {
+        creep.drop(RESOURCE_ENERGY);
+        return DONE;
+      } else {
+        creep.moveToExperimental(target);
+        return OK;
+      }
+    }
+
+    const currentEnergy = creep.carry.energy;
+    const needed = target.energyCapacity - target.energy;
     const amount = Math.min(needed, task.amount, currentEnergy);
 
     if (amount <= 0) {
@@ -147,10 +156,6 @@ class BaseUnit {
     case OK:
       if (amount >= currentEnergy) {
         return NEED_ENERGY;
-      } else if (target instanceof Creep && target.memory.role == 'upgrader') {
-        return OK;
-      } else if (target instanceof Creep && target.memory.role == 'builder') {
-        return target.tasks[0] ? OK : DONE;
       } else {
         return DONE;
       }
