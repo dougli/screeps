@@ -38,8 +38,8 @@ const Arbitrage = {
         }
 
         let energyCost = (
-            Game.market.calcTransactionCost(1000, room.name, sell.roomName) +
-            Game.market.calcTransactionCost(1000, room.name, buy.roomName)
+            Game.market.calcTransactionCost(1000, room, sell.roomName) +
+            Game.market.calcTransactionCost(1000, room, buy.roomName)
         ) / 1000;
 
         let profitPerEnergy = spread / energyCost;
