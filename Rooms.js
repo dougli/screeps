@@ -4,6 +4,7 @@ const BaseLayout = require('BaseLayout');
 
 const MIN_STORAGE_ENERGY = 1000;
 const TARGET_STORAGE_ENERGY = 50000;
+const TERMINAL_ENERGY = 5000;
 
 class Rooms {
   static getBuilderFor(room) {
@@ -92,6 +93,8 @@ class Rooms {
           return structure.energy < structure.energyCapacity * 0.8;
         case STRUCTURE_LINK:
           return false;
+        case STRUCTURE_TERMINAL:
+          return structure.store[RESOURCE_ENERGY] < TERMINAL_ENERGY;
         default:
           return structure.energy < structure.energyCapacity;
         }
