@@ -1,6 +1,6 @@
 const Profiler = require('Profiler');
 
-const MIN_PROFIT_PER_ENERGY = 0.2;
+const MIN_PROFIT_PER_ENERGY = 0.15;
 const MAX_TRADE = 10000;
 const MAX_ENERGY_PER_TICK = 10;
 const TICKS_TO_CLOSE_TRADE = 20;
@@ -23,9 +23,14 @@ const Arbitrage = {
     // We're in the middle of a deal here!
     let trade = room.memory.arbitrage;
     if (trade) {
-      // There's a small risk the order has already been closed
-      Game.market.deal(trade.sell.id, trade.amount, room.name);
       delete room.memory.arbitrage;
+
+      // Make sure the sell pair has not changed underneath our feet
+      const sell = Game.market.getOrderById(trade.sell.id);
+      if (sell && sell.price >= trade.sell.price) {
+        Game.market.deal(trade.sell.id, trade.amount, room.name);
+      }
+
       return;
     }
 
@@ -46,7 +51,7 @@ const Arbitrage = {
     const sells = orders.filter(order => order.type === ORDER_SELL);
 
     let bestTrade = null;
-    let bestValue = MIN_PROFIT_PER_ENERGY;
+    let bestProfit = 0;
     for (const sell of sells) {
       for (const buy of buys) {
         let spread = buy.price - sell.price;
@@ -59,18 +64,19 @@ const Arbitrage = {
             Game.market.calcTransactionCost(1000, room.name, buy.roomName)
         ) / 1000;
 
-        let profitPerEnergy = spread / energyCost;
-        if (profitPerEnergy > bestValue) {
-          let amount = Math.min(
-            MAX_TRADE,
-            sell.amount,
-            buy.amount,
-            Math.floor(Game.market.credits / sell.price),
-            Math.floor(MAX_ENERGY_PER_TICK * TICKS_TO_CLOSE_TRADE / energyCost)
-          );
+        let amount = Math.min(
+          MAX_TRADE,
+          sell.amount,
+          buy.amount,
+          Math.floor(Game.market.credits / sell.price),
+          Math.floor(MAX_ENERGY_PER_TICK * TICKS_TO_CLOSE_TRADE / energyCost)
+        );
 
-          bestTrade = {buy: sell, sell: buy, amount, profitPerEnergy};
-          bestValue = profitPerEnergy;
+        let profitPerEnergy = spread / energyCost;
+        let profit = amount * spread;
+        if (profitPerEnergy > MIN_PROFIT_PER_ENERGY && profit > bestProfit) {
+          bestTrade = {buy: sell, sell: buy, amount, profitPerEnergy, profit};
+          bestProfit = profit;
         }
       }
     }
