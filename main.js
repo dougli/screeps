@@ -12,6 +12,7 @@ const Spawner = require('role.Spawner');
 const Tower = require('role.Tower');
 const Upgrader = require('role.Upgrader');
 const Defender = require('role.Defender');
+const Arbitrage = require('Arbitrage');
 
 require('CreepMixin').run();
 require('mixin.Room').run();
@@ -83,6 +84,7 @@ module.exports.loop = function () {
 
     for (let id in Game.rooms) {
       ExpansionPlanner.run(Game.rooms[id]);
+      // Arbitrage.run(Game.rooms[id]);
     }
 
     for (var id in Game.spawns) {
