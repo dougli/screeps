@@ -2,6 +2,8 @@ const Profiler = require('Profiler');
 
 const MIN_PROFIT_PER_ENERGY = 0.2;
 const MAX_TRADE = 10000;
+const MAX_ENERGY_PER_TICK = 10;
+const TICKS_TO_CLOSE_TRADE = 20;
 
 const ARBITRAGE_RESOURCES = [
   RESOURCE_HYDROGEN,
@@ -10,7 +12,6 @@ const ARBITRAGE_RESOURCES = [
   RESOURCE_LEMERGIUM,
   RESOURCE_KEANIUM,
   RESOURCE_ZYNTHIUM,
-  RESOURCE_CATALYST,
 ];
 
 const Arbitrage = {
@@ -32,7 +33,7 @@ const Arbitrage = {
       Math.floor(Math.random() * ARBITRAGE_RESOURCES.length)
     ];
 
-    trade = Arbitrage.getBestTrade(resourceType, room.name);
+    trade = Arbitrage.getBestTrade(resourceType, room);
     if (trade) {
       Game.market.deal(trade.buy.id, trade.amount, room.name);
       room.memory.arbitrage = trade;
@@ -54,8 +55,8 @@ const Arbitrage = {
         }
 
         let energyCost = (
-            Game.market.calcTransactionCost(1000, room, sell.roomName) +
-            Game.market.calcTransactionCost(1000, room, buy.roomName)
+            Game.market.calcTransactionCost(1000, room.name, sell.roomName) +
+            Game.market.calcTransactionCost(1000, room.name, buy.roomName)
         ) / 1000;
 
         let profitPerEnergy = spread / energyCost;
@@ -64,7 +65,8 @@ const Arbitrage = {
             MAX_TRADE,
             sell.amount,
             buy.amount,
-            Math.floor(Game.market.credits / sell.price)
+            Math.floor(Game.market.credits / sell.price),
+            Math.floor(MAX_ENERGY_PER_TICK * TICKS_TO_CLOSE_TRADE / energyCost)
           );
 
           bestTrade = {buy: sell, sell: buy, amount, profitPerEnergy};

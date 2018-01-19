@@ -84,7 +84,7 @@ module.exports.loop = function () {
 
     for (let id in Game.rooms) {
       ExpansionPlanner.run(Game.rooms[id]);
-      // Arbitrage.run(Game.rooms[id]);
+      Arbitrage.run(Game.rooms[id]);
     }
 
     for (var id in Game.spawns) {
