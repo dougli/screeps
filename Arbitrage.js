@@ -26,7 +26,7 @@ const Arbitrage = {
     if (trade && trade.waitTill > Game.time) {
       return;
     }
-    if (trade) {
+    if (trade && trade.sell) {
       delete room.memory.arbitrage;
 
       // Make sure the sell pair has not changed underneath our feet
