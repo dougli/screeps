@@ -34,49 +34,50 @@ const Arbitrage = {
       return;
     }
 
-    const resourceType = ARBITRAGE_RESOURCES[
-      Math.floor(Math.random() * ARBITRAGE_RESOURCES.length)
-    ];
-
-    trade = Arbitrage.getBestTrade(resourceType, room);
+    trade = Arbitrage.getBestTrade(room);
     if (trade) {
       Game.market.deal(trade.buy.id, trade.amount, room.name);
       room.memory.arbitrage = trade;
     }
   },
 
-  getBestTrade: function(resourceType, room) {
-    const orders = Game.market.getAllOrders({resourceType});
-    const buys = orders.filter(order => order.type === ORDER_BUY);
-    const sells = orders.filter(order => order.type === ORDER_SELL);
+  getBestTrade: function(room) {
+    const allOrders = Game.market.getAllOrders();
 
     let bestTrade = null;
     let bestProfit = 0;
-    for (const sell of sells) {
-      for (const buy of buys) {
-        let spread = buy.price - sell.price;
-        if (spread <= 0) {
-          continue;
-        }
+    for (const resourceType of ARBITRAGE_RESOURCES) {
+      const orders = allOrders.filter(order => order.resourceType === resource);
 
-        let energyCost = (
+      const buys = orders.filter(order => order.type === ORDER_BUY);
+      const sells = orders.filter(order => order.type === ORDER_SELL);
+
+      for (const sell of sells) {
+        for (const buy of buys) {
+          let spread = buy.price - sell.price;
+          if (spread <= 0) {
+            continue;
+          }
+
+          let energyCost = (
             Game.market.calcTransactionCost(1000, room.name, sell.roomName) +
-            Game.market.calcTransactionCost(1000, room.name, buy.roomName)
-        ) / 1000;
+              Game.market.calcTransactionCost(1000, room.name, buy.roomName)
+          ) / 1000;
 
-        let amount = Math.min(
-          MAX_TRADE,
-          sell.amount,
-          buy.amount,
-          Math.floor(Game.market.credits / sell.price),
-          Math.floor(MAX_ENERGY_PER_TICK * TICKS_TO_CLOSE_TRADE / energyCost)
-        );
+          let amount = Math.min(
+            MAX_TRADE,
+            sell.amount,
+            buy.amount,
+            Math.floor(Game.market.credits / sell.price),
+            Math.floor(MAX_ENERGY_PER_TICK * TICKS_TO_CLOSE_TRADE / energyCost)
+          );
 
-        let profitPerEnergy = spread / energyCost;
-        let profit = amount * spread;
-        if (profitPerEnergy > MIN_PROFIT_PER_ENERGY && profit > bestProfit) {
-          bestTrade = {buy: sell, sell: buy, amount, profitPerEnergy, profit};
-          bestProfit = profit;
+          let profitPerEnergy = spread / energyCost;
+          let profit = amount * spread;
+          if (profitPerEnergy > MIN_PROFIT_PER_ENERGY && profit > bestProfit) {
+            bestTrade = {buy: sell, sell: buy, amount, profitPerEnergy, profit};
+            bestProfit = profit;
+          }
         }
       }
     }
