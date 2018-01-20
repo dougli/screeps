@@ -17,7 +17,6 @@ const ARBITRAGE_RESOURCES = [
 
 const Arbitrage = {
   run: function(room) {
-    return;
     if (!room.terminal || !room.terminal.my || room.terminal.cooldown > 0) {
       return;
     }
@@ -64,15 +63,14 @@ const Arbitrage = {
       let best = {
         buy: sells[0],
         sell: buys[0],
-        profit: Number.NEGATIVE_INFINTIY,
+        profit: -Number.MAX_VALUE,
       };
       let updated = false;
       do {
         updated = false;
         for (const buy of buys) {
           const result = Arbitrage.evaluateDeal(best.buy, buy, room.name);
-          if (result.profitPerEnergy > MIN_PROFIT_PER_ENERGY &&
-              result.profit > best.profit) {
+          if (result.profit > best.profit) {
             best = result;
             updated = true;
           }
@@ -80,14 +78,14 @@ const Arbitrage = {
 
         for (const sell of sells) {
           const result = Arbitrage.evaluateDeal(sell, best.sell, room.name);
-          if (result.profitPerEnergy > MIN_PROFIT_PER_ENERGY &&
-              result.profit > best.profit) {
+          if (result.profit > best.profit) {
             best = result;
             updated = true;
           }
         }
       } while (updated);
-      if (!bestTrade || best.profit > bestTrade.profit) {
+      if (best.profitPerEnergy > MIN_PROFIT_PER_ENERGY &&
+          (!bestTrade || best.profit > bestTrade.profit)) {
         bestTrade = best;
       }
     }
