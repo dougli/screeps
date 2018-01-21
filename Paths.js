@@ -58,7 +58,7 @@ const Paths = {
     }, options);
 
     let sameRoom = true;
-    const goals = [];
+    let goals = null;
     if (goal instanceof RoomPosition) {
       goals = [goal];
     } else {
