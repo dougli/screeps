@@ -103,7 +103,9 @@ var ExpansionPlanner = {
 
     const hasRepairSites = Rooms.getRepairerTasks(room).length > 0;
     const hasWallSites = Rooms.getBuildDefenseTasks(room).length > 0;
-    if (!Rooms.getRepairerFor(room) && (hasRepairSites || hasWallSites)) {
+    if (!Rooms.getRepairerFor(room) &&
+        (hasRepairSites || hasWallSites) &&
+        room.storage) {
       return {action: 'spawn_repairer', room: room.name};
     }
 

@@ -7,7 +7,7 @@ class Repairer extends BaseUnit {
   static getIdealBuild(capacity) {
     return BuildCosts.getBestRepeatingBuild(
       [WORK, CARRY, MOVE, MOVE],
-      4,
+      5,
       capacity
     );
   }
