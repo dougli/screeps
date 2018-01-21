@@ -20,8 +20,7 @@ class Repairer extends BaseUnit {
   _tick() {
     const room = this.creep.room;
     if (!this.hasTask()) {
-      this.setTask(Rooms.getRepairTasks(room, this.creep.pos)[0]);
-      return;
+      this._setNextTask();
     }
 
     const result = this._doTask();
@@ -31,18 +30,24 @@ class Repairer extends BaseUnit {
       if (room.storage) {
         this.setTask(new Task(Task.PICKUP, room.storage, 10000));
       }
-      return;
     } else if (result === 'DONE') {
       if (!this.hasTask()) {
-        // Find another repair task -- we don't take the first task as it's the
-        // one that was completed
-        this.setTask(Rooms.getRepairTasks(room, this.creep.pos)[1]);
-        if (this.hasTask()) {
-          this.creep.moveToExperimental(this.getCurrentTask().target);
-        }
+        this._setNextTask();
       }
     }
   }
+
+  _setNextTask() {
+    let task = Rooms.getBuildDefenseTasks(this.creep.room, this.creep.pos)[0];
+    if (task) {
+      this.setTask(task);
+      return;
+    }
+
+    task = Rooms.getRepairerTasks(this.creep.room, this.creep.pos)[0];
+    task && this.setTask(task);
+  }
+
 }
 
 module.exports = Repairer;

@@ -6,6 +6,7 @@ const Walls = require('Walls');
 const MIN_STORAGE_ENERGY = 1000;
 const TARGET_STORAGE_ENERGY = 50000;
 const TERMINAL_ENERGY = 10000;
+const MIN_WALL_REPAIR = 25000;
 
 class Rooms {
   static getBuilderFor(room) {
@@ -64,36 +65,56 @@ class Rooms {
     return result.sort(Task.compare);
   }
 
-  static getRepairTasks(room) {
+  static getBuildDefenseTasks(room, pos) {
+    const result = [];
+
+    let sites = room.find(FIND_MY_CONSTRUCTION_SITES).filter(site => {
+      return site.structureType === STRUCTURE_RAMPART ||
+        site.structureType === STRUCTURE_WALL;
+    });
+
+    pos && sites.sort((a, b) => pos.getRangeTo(a) - pos.getRangeTo(b));
+    return sites.map(site => new Task(Task.BUILD, site, 1));
+  }
+
+  static getRepairerTasks(room, pos) {
     if (!room.controller || !room.controller.my) {
       return [];
     }
 
-    const result = [];
-    const structures = room.find(FIND_STRUCTURES);
-    for (const structure of structures) {
-      if (structure.hitsMax - structure.hits === 0) {
-        continue;
-      }
+    // Don't do anything if the room isn't ready for walls yet
+    const wallHitsMax = Walls.getHitsFor(room.controller.level);
+    if (wallHitsMax <= 0) {
+      return [];
+    }
 
-      const type = structure.structureType;
-      if ((structure.my && type === STRUCTURE_RAMPART) ||
-          type === STRUCTURE_WALL) {
-        const wallHits = Walls.getHitsFor(room.controller.level);
-        if (structure.hits < wallHits) {
-          result.push(
-            new Task(Task.REPAIR, structure, wallHits)
-          );
-        }
-      } else if (structure.my) {
-        result.push(new Task(Task.REPAIR, structure, structure.hitsMax));
-      } else if (structure.structureType === STRUCTURE_ROAD) {
-        if (structure.hitsMax - structure.hits >= 3000) {
-          result.push(new Task(Task.REPAIR, structure, structure.hitsMax));
-        }
+    // Get all the walls and ramparts I own
+    const walls = room.find(FIND_STRUCTURES).filter(structure => {
+      if (structure.structureType !== STRUCTURE_RAMPART &&
+          structure.structureType !== STRUCTURE_WALL) {
+        return false;
+      } else if (structure.hits > wallHitsMax) {
+        return false;
+      }
+      return structure.my || structure.structureType === STRUCTURE_WALL;
+    });
+
+    const avgHP = walls.reduce((accum, wall) => accum + wall.hits, 0) /
+          walls.length;
+
+    let result = [];
+    for (const wall of walls) {
+      if (wall.hits <= avgHP) {
+        const targetHP = Math.max(avgHP + MIN_WALL_REPAIR, avgHP * 1.1);
+        result.push(new Task(Task.REPAIR, wall, targetHP));
       }
     }
 
+    if (pos) {
+      result.sort((a, b) => {
+        return pos.getRangeTo(a.target) - pos.getRangeTo(b.target);
+      });
+    }
     return result;
   }
 
