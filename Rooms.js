@@ -102,19 +102,25 @@ class Rooms {
     const avgHP = walls.reduce((accum, wall) => accum + wall.hits, 0) /
           walls.length;
 
+
     let result = [];
     for (const wall of walls) {
       if (wall.hits <= avgHP) {
-        const targetHP = Math.max(avgHP + MIN_WALL_REPAIR, avgHP * 1.1);
+        const targetHP = Math.max(avgHP + MIN_WALL_REPAIR, avgHP * 1.02);
         result.push(new Task(Task.REPAIR, wall, targetHP));
       }
     }
 
-    if (pos) {
-      result.sort((a, b) => {
+    result.sort((a, b) => {
+      if (a.target.hits < b.target.hits * 0.9) {
+        return -1;
+      } else if (b.target.hits < a.target.hits * 0.9) {
+        return 1;
+      } else if (pos) {
         return pos.getRangeTo(a.target) - pos.getRangeTo(b.target);
-      });
-    }
+      }
+      return 0;
+    });
     return result;
   }
 
