@@ -1,4 +1,5 @@
 const Builder = require('role.Builder');
+const Repairer = require('role.Repairer');
 const Defender = require('role.Defender');
 const ExpansionPlanner = require('ExpansionPlanner');
 const Miner = require('role.Miner');
@@ -99,6 +100,13 @@ var Spawner = {
       {role: 'builder', room});
   },
 
+  spawnRepairer: function(spawn, room) {
+    return spawn.createCreep(
+      Repairer.getIdealBuild(spawn.room.energyCapacityAvailable),
+      undefined,
+      {role: 'repairer', room});
+  },
+
   spawnScout: function(spawn, mission, missionKey) {
     return spawn.createCreep(
       [MOVE],
@@ -149,6 +157,8 @@ var Spawner = {
       Spawner.spawnUpgrader(spawn, plan.upgradeTarget);
     } else if (plan.action == 'spawn_builder') {
       Spawner.spawnBuilder(spawn, plan.room);
+    } else if (plan.action == 'spawn_repairer') {
+      Spawner.spawnRepairer(spawn, plan);
     } else if (plan.action == 'spawn_scout') {
       Spawner.spawnScout(spawn, plan.mission, plan.key);
     } else if (plan.action == 'spawn_claimer') {

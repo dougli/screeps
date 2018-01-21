@@ -1,5 +1,7 @@
+const Arbitrage = require('Arbitrage');
 const Builder = require('role.Builder');
 const Claimer = require('role.Claimer');
+const Defender = require('role.Defender');
 const ExpansionPlanner = require('ExpansionPlanner');
 const Miner = require('role.Miner');
 const MissionLoader = require('MissionLoader');
@@ -7,12 +9,11 @@ const Mule = require('role.Mule');
 const Overseer = require('Overseer');
 const Profiler = require('Profiler');
 const Reloader = require('role.Reloader');
+const Repairer = require('role.Repairer');
 const Scout = require('role.Scout');
 const Spawner = require('role.Spawner');
 const Tower = require('role.Tower');
 const Upgrader = require('role.Upgrader');
-const Defender = require('role.Defender');
-const Arbitrage = require('Arbitrage');
 
 require('CreepMixin').run();
 require('mixin.Room').run();
@@ -50,6 +51,9 @@ module.exports.loop = function () {
         break;
       case 'builder':
         units.push(new Builder(creep));
+        break;
+      case 'repairer':
+        units.push(new Repairer(creep));
         break;
       case 'upgrader':
         units.push(new Upgrader(creep));

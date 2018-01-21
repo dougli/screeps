@@ -1,6 +1,7 @@
 const Rooms = require('Rooms');
 
 const MAX_REPAIR_DISTANCE = 10;
+const MAX_RAMPART_REPAIR = 1000;
 
 function linterpTowerRange(range) {
   const min = 1 - TOWER_FALLOFF;
@@ -50,7 +51,9 @@ class Tower {
     for (const task of tasks) {
       if (pos.getRangeTo(task.target) <= MAX_REPAIR_DISTANCE) {
         this.tower.repair(task.target);
-        return;
+      } else if (task.target.structureType === STRUCTURE_RAMPART &&
+                 task.target.hits < 500) {
+        this.tower.repair(task.target);
       }
     }
   }

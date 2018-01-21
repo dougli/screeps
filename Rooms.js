@@ -1,6 +1,7 @@
 const Task = require('Task');
 const Controllers = require('Controllers');
 const BaseLayout = require('BaseLayout');
+const Walls = require('Walls');
 
 const MIN_STORAGE_ENERGY = 1000;
 const TARGET_STORAGE_ENERGY = 50000;
@@ -9,6 +10,10 @@ const TERMINAL_ENERGY = 10000;
 class Rooms {
   static getBuilderFor(room) {
     return room.builder;
+  }
+
+  static getRepairerFor(room) {
+    return room.repairer;
   }
 
   static getReloadersFor(room) {
@@ -46,7 +51,7 @@ class Rooms {
   static getBuildTasks(room) {
     const result = [];
 
-    var sites = room.find(FIND_CONSTRUCTION_SITES);
+    var sites = room.find(FIND_MY_CONSTRUCTION_SITES);
     const priorities = BaseLayout.getPriorityMap();
     sites.forEach(function(site) {
       var amount = site.progressTotal - site.progress;
@@ -67,16 +72,24 @@ class Rooms {
     const result = [];
     const structures = room.find(FIND_STRUCTURES);
     for (const structure of structures) {
-      const amount = structure.hitsMax - structure.hits;
-      if (amount === 0) {
+      if (structure.hitsMax - structure.hits === 0) {
         continue;
       }
 
-      if (structure.my) {
-        result.push(new Task(Task.REPAIR, structure, amount));
+      const type = structure.structureType;
+      if ((structure.my && type === STRUCTURE_RAMPART) ||
+          type === STRUCTURE_WALL) {
+        const wallHits = Walls.getHitsFor(room.controller.level);
+        if (structure.hits < wallHits) {
+          result.push(
+            new Task(Task.REPAIR, structure, wallHits)
+          );
+        }
+      } else if (structure.my) {
+        result.push(new Task(Task.REPAIR, structure, structure.hitsMax));
       } else if (structure.structureType === STRUCTURE_ROAD) {
-        if (amount >= 3000) {
-          result.push(new Task(Task.REPAIR, structure, amount));
+        if (structure.hitsMax - structure.hits >= 3000) {
+          result.push(new Task(Task.REPAIR, structure, structure.hitsMax));
         }
       }
     }
@@ -148,7 +161,7 @@ class Rooms {
     // Then, prioritize builders
     if (!mustPrioritizeUpgrade) {
       const builder = Rooms.getBuilderFor(room);
-      if (builder && builder.hasTask()) {
+      if (builder && builder.hasTask() && builder.isNearTask()) {
         return [new Task(Task.TRANSFER, builder.creep, 1000)];
       }
     }

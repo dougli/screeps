@@ -1,4 +1,5 @@
 const BaseLayout = require('BaseLayout');
+const Walls = require('Walls');
 const Controllers = require('Controllers');
 const Mission = require('Mission');
 const Profiler = require('Profiler');
@@ -94,11 +95,15 @@ var ExpansionPlanner = {
       return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
     }
 
-    // Then, check if we want to build structures - prioritize unless
-    // downgrade is imminent
+    // Make sure we have builders or repairers as needed
     const hasBuildSites = Rooms.getBuildTasks(room).length > 0;
     if (!Rooms.getBuilderFor(room) && hasBuildSites) {
       return {action: 'spawn_builder', room: room.name};
+    }
+
+    const hasRepairSites = Rooms.getRepairTasks(room).length > 0;
+    if (!Rooms.getRepairerFor(room) && hasRepairSites) {
+      return {action: 'spawn_repairer', room: room.name};
     }
 
     // Then, fully expand out upgrade speed
@@ -163,7 +168,7 @@ var ExpansionPlanner = {
       return;
     }
 
-    const sites = room.find(FIND_MY_CONSTRUCTION_SITES);
+    let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
     let numToBuild = MAX_SITES_PER_ROOM - sites.length;
     if (numToBuild <= 0) {
       return;
@@ -171,6 +176,15 @@ var ExpansionPlanner = {
 
     // Fully build out the base at the current level
     let plans = BaseLayout.getConstructionPlans(room);
+    ExpansionPlanner._buildPlans(room, plans, numToBuild);
+
+    sites = room.find(FIND_MY_CONSTRUCTION_SITES);
+    numToBuild = MAX_SITES_PER_ROOM - sites.length;
+    if (numToBuild <= 0) {
+      return;
+    }
+
+    plans = Walls.getWallPlansToBuild(room);
     ExpansionPlanner._buildPlans(room, plans, numToBuild);
   },
 

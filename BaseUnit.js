@@ -1,5 +1,7 @@
 const Sources = require('Sources');
 const Task = require('Task');
+const Rooms = require('Rooms');
+const Walls = require('Walls');
 
 const DONE = 'DONE';
 const NEED_ENERGY = 'NEED_ENERGY';
@@ -45,7 +47,7 @@ class BaseUnit {
       [Task.PICKUP]: this._pickup,
       [Task.TRANSFER]: this._transfer,
       [Task.SCOUT]: this._scout,
-      // [Task.REPAIR]: this._repair,
+      [Task.REPAIR]: this._repair,
       [Task.BUILD]: this._build,
       // [Task.UPGRADE]: this._upgrade,
     };
@@ -186,28 +188,29 @@ class BaseUnit {
     return OK;
   }
 
-  // _repair(task) {
-  //   const creep = this.creep;
-  //   const energy = creep.carry.energy;
+  _repair(task) {
+    const creep = this.creep;
+    const energy = creep.carry.energy;
+    if (task.target.hits === task.target.hitsMax ||
+        task.target.hits >= task.amount) {
+      return DONE;
+    }
 
-  //   if (task.target.hits === task.target.hitsMax) {
-  //     return FAILED;
-  //   }
-
-  //   switch (creep.repair(task.target)) {
-  //   case OK:
-  //     return energy <= creep.getActiveBodyparts(WORK)
-  //       ? NEED_ENERGY
-  //       : true;
-  //   case ERR_NOT_IN_RANGE:
-  //     creep.moveToExperimental(task.target);
-  //     return true;
-  //   case ERR_INVALID_TARGET:
-  //   default:
-  //     creep.say('failed');
-  //     return FAILED;
-  //   }
-  // }
+    switch (creep.repair(task.target)) {
+    case OK:
+      return energy <= creep.getActiveBodyparts(WORK)
+        ? NEED_ENERGY
+        : OK;
+    case ERR_NOT_IN_RANGE:
+      creep.moveToExperimental(task.target);
+      return OK;
+    case ERR_NOT_ENOUGH_RESOURCES:
+      return NEED_ENERGY;
+    case ERR_INVALID_TARGET:
+    default:
+      return DONE;
+    }
+  }
 
   _build(task) {
     const creep = this.creep;

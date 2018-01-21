@@ -18,6 +18,11 @@ class Builder extends BaseUnit {
     }
   }
 
+  isNearTask() {
+    const task = this.getCurrentTask();
+    return task && this.creep.pos.inRangeTo(task.target, 3);
+  }
+
   getRoom() {
     return Game.rooms[this.creep.memory.room];
   }
