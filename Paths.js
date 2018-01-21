@@ -58,7 +58,12 @@ const Paths = {
     }, options);
 
     let sameRoom = true;
-    const goals = Array.isArray(goal.pos) ? goal.pos : [goal.pos];
+    const goals = [];
+    if (goal instanceof RoomPosition) {
+      goals = [goal];
+    } else {
+      goals = Array.isArray(goal.pos) ? goal.pos : [goal.pos];
+    }
     for (let goalPos of goals) {
       if (origin.roomName !== goalPos.roomName) {
         sameRoom = false;
