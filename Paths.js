@@ -57,12 +57,25 @@ const Paths = {
       freshMatrix: false,
     }, options);
 
+    let sameRoom = true;
+    const goals = Array.isArray(goal.pos) ? goal.pos : [goal.pos];
+    for (let goalPos of goals) {
+      if (origin.roomName !== goalPos.roomName) {
+        sameRoom = false;
+        break;
+      }
+    }
+
     const result = PathFinder.search(origin, goal, {
       plainCost: opts.ignoreTerrain ? 1 : (opts.ignoreRoads ? 1 : 2),
 
       swampCost: opts.ignoreTerrain ? 1 : (opts.ignoreRoads ? 5 : 10),
 
       roomCallback: (roomName) => {
+        if (sameRoom && roomName !== origin.roomName) {
+          return false;
+        }
+
         const mem = Memory.rooms[roomName];
         if (mem && mem.hostile && opts.ignoreHostile.indexOf(roomName) < 0) {
           return false;
