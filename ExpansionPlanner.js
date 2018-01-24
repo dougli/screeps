@@ -140,38 +140,10 @@ var Spawner = {
         missionKey: plan.key,
       }});
   },
-
-  spawnByPlan: function(spawn, plan) {
-    if (plan.action == 'spawn_miner') {
-      Spawner.spawnMiner(spawn, plan);
-    } else if (plan.action == 'spawn_minimum_miner') {
-      Spawner.spawnMinimumMiner(spawn, plan);
-    } else if (plan.action == 'spawn_mule') {
-      Spawner.spawnMule(spawn, plan);
-    } else if (plan.action == 'spawn_minimum_mule') {
-      Spawner.spawnMule(spawn, plan, true);
-    } else if (plan.action == 'spawn_recovery_mule') {
-      Spawner.spawnRecoveryMule(spawn, plan);
-    } else if (plan.action == 'spawn_reloader') {
-      Spawner.spawnReloader(spawn, plan.quadrant);
-    } else if (plan.action == 'spawn_upgrader') {
-      Spawner.spawnUpgrader(spawn, plan.upgradeTarget);
-    } else if (plan.action == 'spawn_builder') {
-      Spawner.spawnBuilder(spawn, plan.room);
-    } else if (plan.action == 'spawn_repairer') {
-      Spawner.spawnRepairer(spawn, plan);
-    } else if (plan.action == 'spawn_scout') {
-      Spawner.spawnScout(spawn, plan.mission, plan.key);
-    } else if (plan.action == 'spawn_claimer') {
-      Spawner.spawnClaimer(spawn, plan.mission, plan.key);
-    } else if (plan.action == 'spawn_defender') {
-      Spawner.spawnDefender(spawn, plan);
-    }
-  }
 };
 
 var ExpansionPlanner = {
-  getRoomDevelopmentPlan: function(room) {
+  spawnCreep: function(room, spawn) {
     let hasMule = false;
     let hasMiner = false;
     let energyPerTick = 0;
@@ -194,53 +166,51 @@ var ExpansionPlanner = {
     // Every source should have at least 1 miner and 1 hauler
     for (let source of sources) {
       if (!Sources.getMinersFor(source, true).length) {
+        const plan = {
+          harvestTarget: source.id,
+          harvestRoom: room.name
+        };
+
         if (!hasMiner) {
-          return {
-            action: 'spawn_minimum_miner',
-            harvestTarget: source.id,
-            harvestRoom: room.name
-          };
+          Spawner.spawnMinimumMiner(spawn, plan);
         } else {
-          return {
-            action: 'spawn_miner',
-            harvestTarget: source.id,
-            harvestRoom: room.name
-          };
+          Spawner.spawnMiner(spawn, plan);
         }
+        return;
       } else if (!Sources.getMulesFor(source).length) {
         if (!hasMule) {
-          return {
-            action: 'spawn_minimum_mule',
+          Spawner.spawnMule(spawn, {
             haulTarget: source.id,
             haulRoom: room.name,
             base: room.name
-          };
+          }, true);
+        } else {
+          Spawner.spawnRecoveryMule(spawn, {
+            haulTarget: source.id,
+            haulRoom: room.name,
+            base: room.name
+          });
         }
-        return {
-          action: 'spawn_recovery_mule',
-          haulTarget: source.id,
-          haulRoom: room.name,
-          base: room.name
-        };
+        return;
       }
     }
 
     // Then, full expand out all miners as needed
     for (let source of sources) {
       if (Sources.getRemainingMineSpeed(source) > 1) {
-        return {
-          action: 'spawn_miner',
+        Spawner.spawnMiner(spawn, {
           harvestTarget: source.id,
           harvestRoom: room.name
-        };
+        });
+        return;
       }
       if (Sources.getRemainingMuleSpeed(source) > 1) {
-        return {
-          action: 'spawn_mule',
+        Spawner.spawnMule(spawn, {
           haulTarget: source.id,
           haulRoom: room.name,
           base: room.name
-        };
+        });
+        return;
       }
     }
 
@@ -248,19 +218,22 @@ var ExpansionPlanner = {
     const upgradeSpeed = Controllers.getUpgradeSpeed(room.controller);
     const missingReloaders = Rooms.getMissingReloaders(room);
     if (missingReloaders.length) {
-      return {action: 'spawn_reloader', quadrant: missingReloaders[0]};
+      Spawner.spawnReloader(spawn, missingReloaders[0]);
+      return;
     }
 
     // Then, check if we have something upgrading the room
     if (Controllers.mustPrioritizeUpgrade(room.controller) &&
         upgradeSpeed === 0) {
-      return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
+      Spawner.spawnUpgrader(spawn, room.controller.id);
+      return;
     }
 
     // Make sure we have builders or repairers as needed
     const hasBuildSites = Rooms.getBuildTasks(room).length > 0;
     if (!Rooms.getBuilderFor(room) && hasBuildSites) {
-      return {action: 'spawn_builder', room: room.name};
+      Spawner.spawnBuilder(spawn, {room: room.name});
+      return;
     }
 
     const hasRepairSites = Rooms.getRepairerTasks(room).length > 0;
@@ -268,7 +241,8 @@ var ExpansionPlanner = {
     if (!Rooms.getRepairerFor(room) &&
         (hasRepairSites || hasWallSites) &&
         room.storage) {
-      return {action: 'spawn_repairer', room: room.name};
+      Spawner.spawnRepairer(spawn, room.name);
+      return;
     }
 
     // Then, fully expand out upgrade speed
@@ -276,50 +250,38 @@ var ExpansionPlanner = {
         !hasBuildSites &&
         (Controllers.getContainerFor(room.controller) || upgradeSpeed === 0) &&
         energyPerTick - upgradeSpeed > 2) {
-      return {action: 'spawn_upgrader', upgradeTarget: room.controller.id};
+      Spawner.spawnUpgrader(spawn, room.controller.id);
+      return;
     }
 
     // Finally, fulfill any mission requisitions
     const requisition = Mission.getCreepRequisitions()[0];
     if (requisition && requisition.type === 'scout') {
-      return {
-        action: 'spawn_scout',
-        mission: requisition.mission.id,
-        key: requisition.key
-      };
+      Spawner.spawnScout(spawn, requisition.mission.id, requisition.key);
     } else if (requisition && requisition.type === 'claimer') {
-      return {
-        action: 'spawn_claimer',
-        mission: requisition.mission.id,
-        key: requisition.key
-      };
+      Spawner.spawnClaimer(spawn, requisition.mission.id, requisition.key);
     } else if (requisition && requisition.type === 'miner') {
-      return {
-        action: 'spawn_miner',
+      Spawner.spawnMiner(spawn, {
         mission: requisition.mission.id,
         key: requisition.key,
         harvestTarget: requisition.memory.harvestTarget,
         harvestRoom: requisition.memory.harvestRoom
-      };
+      })
     } else if (requisition && requisition.type === 'mule') {
-      return {
-        action: 'spawn_mule',
+      Spawner.spawnMule({
         mission: requisition.mission.id,
         key: requisition.key,
         haulTarget: requisition.memory.haulTarget,
         haulRoom: requisition.memory.haulRoom,
         base: requisition.memory.base
-      };
+      });
     } else if (requisition && requisition.type === 'defender') {
-      return {
-        action: 'spawn_defender',
+      Spawner.spawnDefender({
         mission: requisition.mission.id,
         key: requisition.key,
         defendTarget: requisition.memory.defendTarget,
-      };
+      });
     }
-
-    return {};
   },
 
   run: function(room) {
@@ -329,8 +291,7 @@ var ExpansionPlanner = {
 
     const spawn = room.find(FIND_MY_SPAWNS).filter(spawn => !spawn.spawning)[0];
     if (spawn) {
-      const plan = ExpansionPlanner.getRoomDevelopmentPlan(room);
-      Spawner.spawnByPlan(spawn, plan);
+      ExpansionPlanner.spawnCreep(room, spawn);
     }
 
     if (Game.time % 11 === 0) {
