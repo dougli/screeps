@@ -51,7 +51,7 @@ var Spawner = {
     }
 
     let parts = Mule.getIdealBuild(plan.base, sourcePos, 10);
-    if (minimum && spawn.room.energyAvailable < ideal.length * 50) {
+    if (minimum && spawn.room.energyAvailable < parts.length * 50) {
       parts = [MOVE, CARRY];
     }
 
