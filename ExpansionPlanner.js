@@ -341,7 +341,6 @@ var ExpansionPlanner = {
   },
 }
 
-Profiler.registerObject(Spawner, 'Spawner');
 Profiler.registerObject(ExpansionPlanner, 'ExpansionPlanner');
 
 module.exports = ExpansionPlanner;
