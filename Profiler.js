@@ -346,6 +346,13 @@ module.exports = {
     hookUpPrototypes();
   },
 
+  report(fn) {
+    const start = Game.cpu.getUsed();
+    const result = fn();
+    console.log('CPU', (Game.cpu.getUsed() - start).toFixed(3));
+    return result;
+  },
+
   output: Profiler.output,
 
   registerObject: profileObjectFunctions,

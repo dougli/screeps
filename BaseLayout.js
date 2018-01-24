@@ -168,12 +168,12 @@ class BaseLayout {
     case 4:
       return ['SW'];
     case 5:
-      return ['SW', 'SE'];
+      return ['SW'];
     case 6:
-      return ['SW', 'SE', 'NW'];
+      return ['SW', 'NW'];
     case 7:
     case 8:
-      return ['SW', 'SE', 'NE', 'NW'];
+      return ['SW', 'NW'];
     }
 
     return [];
@@ -213,9 +213,9 @@ class BaseLayout {
 
     const extraLooks = {
       NE: [{x: 5, y: 3}, {x: 9, y: 7}],
-      NW: [{x: 7, y: 3}, {x: 3, y: 7}],
+      NW: [/*{x: 7, y: 3},*/ {x: 3, y: 7}, {x: 9, y: 7}],
       SE: [{x: 5, y: 9}, {x: 9, y: 5}],
-      SW: [{x: 7, y: 9}, {x: 3, y: 5}]
+      SW: [/*{x: 7, y: 9},*/ {x: 3, y: 5}, {x: 9, y: 5}]
     };
 
     // Note: find() is faster than lookForAtArea() here
@@ -234,7 +234,9 @@ class BaseLayout {
         return false;
       }
 
-      return x <= pos.x && pos.x <= x + qSize &&
+      // return x <= pos.x && pos.x <= x + qSize &&
+      //   y <= pos.y && pos.y <= y + qSize;
+      return x <= pos.x && pos.x <= x + SIZE &&
         y <= pos.y && pos.y <= y + qSize;
     });
 

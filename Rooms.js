@@ -2,6 +2,7 @@ const Task = require('Task');
 const Controllers = require('Controllers');
 const BaseLayout = require('BaseLayout');
 const Walls = require('Walls');
+const Profiler = require('Profiler');
 
 const MIN_STORAGE_ENERGY = 1000;
 const TARGET_STORAGE_ENERGY = 50000;
@@ -125,30 +126,36 @@ class Rooms {
   }
 
   static getReloadTasks(reloader, room) {
-    const quadrant = reloader.getQuadrant();
-    const toRefill = BaseLayout.getQuadrantEnergyStructures(room, quadrant)
-      .filter((structure) => {
-        switch (structure.structureType) {
-        case STRUCTURE_TOWER:
-          return structure.energy < structure.energyCapacity * 0.8;
-        case STRUCTURE_TERMINAL:
-          return structure.store[RESOURCE_ENERGY] < TERMINAL_ENERGY;
-        default:
-          return structure.energy < structure.energyCapacity;
-        }
+    return Profiler.report(_ => {
+      if (room.energyAvailable === room.energyCapacityAvailable) {
+        return [];
+      }
+
+      const quadrant = reloader.getQuadrant();
+      const toRefill = BaseLayout.getQuadrantEnergyStructures(room, quadrant)
+            .filter((structure) => {
+              switch (structure.structureType) {
+              case STRUCTURE_TOWER:
+                return structure.energy < structure.energyCapacity * 0.8;
+              case STRUCTURE_TERMINAL:
+                return structure.store[RESOURCE_ENERGY] < TERMINAL_ENERGY;
+              default:
+                return structure.energy < structure.energyCapacity;
+              }
+            });
+
+      let result = toRefill.map((structure) => {
+        return new Task(Task.TRANSFER, structure, 300);
       });
 
-    let result = toRefill.map((structure) => {
-      return new Task(Task.TRANSFER, structure, 300);
+      const pos = reloader.creep.pos;
+      // result.sort((a, b) => {
+      //   const distA = pos.getRangeTo(a.target);
+      //   const distB = pos.getRangeTo(b.target);
+      //   return distA - distB;
+      // });
+      return result;
     });
-
-    const pos = reloader.creep.pos;
-    result = result.sort((a, b) => {
-      const distA = pos.getRangeTo(a.target);
-      const distB = pos.getRangeTo(b.target);
-      return distA - distB;
-    });
-    return result;
   }
 
   static getDropoffTasks(room, pos) {
@@ -206,5 +213,7 @@ class Rooms {
     return [];
   }
 }
+
+Profiler.registerObject(Rooms, 'Rooms');
 
 module.exports = Rooms;

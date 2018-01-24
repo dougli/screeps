@@ -8,11 +8,11 @@ const Task = require('Task');
 class Reloader extends BaseUnit {
   static getIdealBuild(room) {
     const level = room.controller.level;
-    const repeats = 3;
-    if (level === 7) {
-      repeats = 4;
+    let repeats = 4;
+    if (level >= 5 && level <= 7) {
+      repeats = 8;
     } else if (level === 8) {
-      repeats = 6;
+      repeats = 11;
     }
 
     return BuildCosts.getBestRepeatingBuild(
