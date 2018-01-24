@@ -53,7 +53,10 @@ class Rooms {
   static getBuildTasks(room) {
     const result = [];
 
-    var sites = room.find(FIND_MY_CONSTRUCTION_SITES);
+    var sites = room.find(FIND_MY_CONSTRUCTION_SITES).filter(site => {
+      return site.structureType !== STRUCTURE_LINK ||
+        site.pos.inRangeTo(BaseLayout.getBaseCenter(room), 2);
+    });
     const priorities = BaseLayout.getPriorityMap();
     sites.forEach(function(site) {
       var amount = site.progressTotal - site.progress;
