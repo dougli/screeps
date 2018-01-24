@@ -11,7 +11,6 @@ const Profiler = require('Profiler');
 const Reloader = require('role.Reloader');
 const Repairer = require('role.Repairer');
 const Scout = require('role.Scout');
-const Spawner = require('role.Spawner');
 const Tower = require('role.Tower');
 const Upgrader = require('role.Upgrader');
 
@@ -89,10 +88,6 @@ module.exports.loop = function () {
     for (let id in Game.rooms) {
       ExpansionPlanner.run(Game.rooms[id]);
       Arbitrage.run(Game.rooms[id]);
-    }
-
-    for (var id in Game.spawns) {
-      Spawner.run(Game.spawns[id]);
     }
 
     units.forEach((unit) => {

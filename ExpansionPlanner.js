@@ -1,12 +1,174 @@
 const BaseLayout = require('BaseLayout');
-const Walls = require('Walls');
+const Builder = require('role.Builder');
 const Controllers = require('Controllers');
+const Defender = require('role.Defender');
+const Miner = require('role.Miner');
 const Mission = require('Mission');
+const Mule = require('role.Mule');
 const Profiler = require('Profiler');
+const Reloader = require('role.Reloader');
+const Repairer = require('role.Repairer');
 const Rooms = require('Rooms');
 const Sources = require('Sources');
+const Upgrader = require('role.Upgrader');
+const Walls = require('Walls');
 
 const MAX_SITES_PER_ROOM = 4;
+
+var Spawner = {
+  spawnMinimumMiner: function(spawn, plan) {
+    if (spawn.room.energyAvailable < 400 ||
+        Spawner.spawnMiner(spawn, plan) !== OK) {
+      return spawn.spawnCreep(
+        [MOVE, CARRY, WORK],
+        Math.random().toString(16).substring(2),
+        {memory: {
+          role: 'miner',
+          harvestTarget: plan.harvestTarget,
+          harvestRoom: plan.harvestRoom,
+        }});
+    }
+  },
+
+  spawnMiner: function(spawn, plan) {
+    return spawn.spawnCreep(
+      Miner.getIdealBuild(spawn.room.energyCapacityAvailable),
+      Math.random().toString(16).substring(2),
+      {memory: {
+        role: 'miner',
+        harvestTarget: plan.harvestTarget,
+        harvestRoom: plan.harvestRoom,
+        mission: plan.mission,
+        missionKey: plan.key,
+      }});
+  },
+
+  spawnMule: function(spawn, plan, minimum = false) {
+    const sourcePos = Sources.getSourcePosition(plan.haulRoom, plan.haulTarget);
+    if (!sourcePos) {
+      return null;
+    }
+
+    const parts = minimum
+          ? [MOVE, CARRY]
+          : Mule.getIdealBuild(plan.base, sourcePos, 10);
+    return spawn.spawnCreep(
+      parts,
+      Math.random().toString(16).substring(2),
+      {memory: {
+        role: 'mule',
+        haulTarget: plan.haulTarget,
+        haulRoom: plan.haulRoom,
+        base: plan.base,
+        mission: plan.mission,
+        missionKey: plan.key,
+      }});
+  },
+
+  spawnRecoveryMule: function(spawn, plan) {
+    const result = Spawner.spawnMule(spawn, plan, false);
+    if (result === OK) {
+      return OK;
+    }
+
+    return spawn.spawnCreep(
+      [MOVE, CARRY, MOVE, CARRY, MOVE, CARRY],
+      Math.random().toString(16).substring(2),
+      {memory: {
+        role: 'mule',
+        haulTarget: plan.haulTarget,
+        haulRoom: plan.haulRoom,
+        base: plan.base,
+        mission: plan.mission,
+        missionKey: plan.key,
+      }});
+  },
+
+  spawnReloader: function(spawn, quadrant) {
+    return spawn.createCreep(
+      Reloader.getIdealBuild(spawn.room),
+      undefined,
+      {role: 'reloader', quadrant}
+    );
+  },
+
+  spawnUpgrader: function(spawn, upgradeTarget) {
+    return spawn.createCreep(
+      Upgrader.getIdealBuild(spawn.room.energyCapacityAvailable),
+      undefined,
+      {role: 'upgrader', upgradeTarget});
+  },
+
+  spawnBuilder: function(spawn, room) {
+    return spawn.createCreep(
+      Builder.getIdealBuild(spawn.room.energyCapacityAvailable),
+      undefined,
+      {role: 'builder', room});
+  },
+
+  spawnRepairer: function(spawn, room) {
+    return spawn.createCreep(
+      Repairer.getIdealBuild(spawn.room.energyCapacityAvailable),
+      undefined,
+      {role: 'repairer', room});
+  },
+
+  spawnScout: function(spawn, mission, missionKey) {
+    return spawn.createCreep(
+      [MOVE],
+      undefined,
+      {role: 'scout', mission, missionKey}
+    );
+  },
+
+  spawnClaimer: function(spawn, mission, missionKey) {
+    return spawn.createCreep(
+      [MOVE, MOVE, CLAIM, CLAIM],
+      undefined,
+      {role: 'claimer', mission, missionKey}
+    );
+  },
+
+  spawnDefender: function(spawn, plan) {
+    return spawn.spawnCreep(
+      Defender.getIdealBuild(spawn.room.energyCapacityAvailable),
+      Math.random().toString(16).substring(2),
+      {memory: {
+        role: 'defender',
+        defendTarget: plan.defendTarget,
+        mission: plan.mission,
+        missionKey: plan.key,
+      }});
+  },
+
+  spawnByPlan: function(spawn, plan) {
+    if (plan.action == 'spawn_miner') {
+      Spawner.spawnMiner(spawn, plan);
+    } else if (plan.action == 'spawn_minimum_miner') {
+      Spawner.spawnMinimumMiner(spawn, plan);
+    } else if (plan.action == 'spawn_mule') {
+      Spawner.spawnMule(spawn, plan);
+    } else if (plan.action == 'spawn_minimum_mule') {
+      Spawner.spawnMule(spawn, plan, true);
+    } else if (plan.action == 'spawn_recovery_mule') {
+      Spawner.spawnRecoveryMule(spawn, plan);
+    } else if (plan.action == 'spawn_reloader') {
+      Spawner.spawnReloader(spawn, plan.quadrant);
+    } else if (plan.action == 'spawn_upgrader') {
+      Spawner.spawnUpgrader(spawn, plan.upgradeTarget);
+    } else if (plan.action == 'spawn_builder') {
+      Spawner.spawnBuilder(spawn, plan.room);
+    } else if (plan.action == 'spawn_repairer') {
+      Spawner.spawnRepairer(spawn, plan);
+    } else if (plan.action == 'spawn_scout') {
+      Spawner.spawnScout(spawn, plan.mission, plan.key);
+    } else if (plan.action == 'spawn_claimer') {
+      Spawner.spawnClaimer(spawn, plan.mission, plan.key);
+    } else if (plan.action == 'spawn_defender') {
+      Spawner.spawnDefender(spawn, plan);
+    }
+  }
+};
 
 var ExpansionPlanner = {
   getRoomDevelopmentPlan: function(room) {
@@ -161,6 +323,16 @@ var ExpansionPlanner = {
   },
 
   run: function(room) {
+    if (!room.controller || !room.controller.my) {
+      return;
+    }
+
+    const spawn = room.find(FIND_MY_SPAWNS).filter(spawn => !spawn.spawning)[0];
+    if (spawn) {
+      const plan = ExpansionPlanner.getRoomDevelopmentPlan(room);
+      Spawner.spawnByPlan(spawn, plan);
+    }
+
     if (Game.time % 11 === 0) {
       ExpansionPlanner.buildBase(room);
     }
@@ -208,6 +380,7 @@ var ExpansionPlanner = {
   },
 }
 
+Profiler.registerObject(Spawner, 'Spawner');
 Profiler.registerObject(ExpansionPlanner, 'ExpansionPlanner');
 
 module.exports = ExpansionPlanner;

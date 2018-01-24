@@ -1,6 +1,5 @@
 const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
-const ExpansionPlanner = require('ExpansionPlanner');
 const Sources = require('Sources');
 const Task = require('Task');
 const Profiler = require('Profiler');
