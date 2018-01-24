@@ -235,7 +235,7 @@ var ExpansionPlanner = {
     // Make sure we have builders or repairers as needed
     const hasBuildSites = Rooms.getBuildTasks(room).length > 0;
     if (!Rooms.getBuilderFor(room) && hasBuildSites) {
-      Spawner.spawnBuilder(spawn, {room: room.name});
+      Spawner.spawnBuilder(spawn, room.name);
       return;
     }
 
