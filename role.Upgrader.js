@@ -56,9 +56,13 @@ class Upgrader extends BaseUnit {
       const site = Controllers.getLinkSiteFor(controller);
       if (site) {
         if (creep.carry[RESOURCE_ENERGY] < creep.carryCapacity) {
-          creep.dismantle(container);
+          if (creep.dismantle(container) !== OK) {
+            creep.moveToExperimental(container);
+          }
         } else {
-          creep.build(site);
+          if (creep.build(site) !== OK) {
+            creep.moveToExperimental(site);
+          }
         }
         return;
       } else if (container.hits < container.hitsMax) {
