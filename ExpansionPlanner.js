@@ -252,7 +252,7 @@ var ExpansionPlanner = {
     // Then, fully expand out upgrade speed
     if (room.controller && !hasBuildSites &&
         (Controllers.getContainerFor(room.controller) ||
-         Controllers.getLinkFor(room.controller) || upgradeSpeed === 0)) &&
+         Controllers.getLinkFor(room.controller) || upgradeSpeed === 0) &&
         energyPerTick - upgradeSpeed > 2) {
       Spawner.spawnUpgrader(spawn, room.controller.id);
       return;
