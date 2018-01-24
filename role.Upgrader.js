@@ -29,9 +29,11 @@ class Upgrader extends BaseUnit {
   }
 
   _tick() {
+    const creep = this.creep;
     const controller = this.getUpgradeTarget();
     const container = Controllers.getContainerFor(controller);
-    const memory = this.creep.memory;
+    const link = Controllers.getLinkFor(controller);
+    const memory = creep.memory;
 
     if (controller.ticksToDowngrade <= 2000) {
       memory.forceUpgrade = true;
@@ -39,37 +41,54 @@ class Upgrader extends BaseUnit {
       delete memory.forceUpgrade;
     }
 
-    if (container) {
-      // To save CPU, withdraw only when we need to
-      if (this.creep.carry[RESOURCE_ENERGY] <= this.getUpgradeSpeed()) {
-        this.creep.withdraw(container, RESOURCE_ENERGY);
+    if (link && container) {
+      creep.dismantle(container);
+    } else if (link) {
+      if (creep.carry[RESOURCE_ENERGY] <= this.getUpgradeSpeed()) {
+        creep.withdraw(link, RESOURCE_ENERGY);
       }
-      if (container.hits < container.hitsMax) {
-        this.creep.repair(container);
+    } else if (container) {
+      // To save CPU, withdraw only when we need to
+      if (creep.carry[RESOURCE_ENERGY] <= this.getUpgradeSpeed()) {
+        creep.withdraw(container, RESOURCE_ENERGY);
+      }
+
+      const site = Controllers.getLinkSiteFor(controller);
+      if (site) {
+        if (creep.carry[RESOURCE_ENERGY] < creep.carryCapacity) {
+          creep.dismantle(container);
+        } else {
+          creep.build(site);
+        }
+        return;
+      } else if (container.hits < container.hitsMax) {
+        creep.repair(container);
       }
     } else if (controller.level >= 2 && !memory.forceUpgrade) {
       // Build a container if it's not there if RCL >= 2
-      const site = Controllers.getContainerSiteFor(controller);
+      const site = controller.level >= 5
+            ? Controllers.getLinkSiteFor(controller)
+            : Controllers.getContainerSiteFor(controller);
       if (site) {
-        const result = this.creep.build(site);
+        const result = creep.build(site);
         if (result == ERR_NOT_IN_RANGE || result == ERR_NOT_ENOUGH_RESOURCES) {
-          this.creep.moveToExperimental(site);
+          creep.moveToExperimental(site);
         }
       }
       return;
     }
 
-    const result = this.creep.upgradeController(controller);
+    const result = creep.upgradeController(controller);
     switch (result) {
     case ERR_NOT_IN_RANGE:
-      this.creep.moveToExperimental(controller);
+      creep.moveToExperimental(controller);
       break;
     case ERR_NOT_ENOUGH_RESOURCES:
-      if (container) {
-        this.creep.moveToExperimental(container);
+      if (container || link) {
+        creep.moveToExperimental(container || link);
       } else {
         // Otherwise, just move closer to the controller
-        this.creep.moveToExperimental(controller);
+        creep.moveToExperimental(controller);
       }
       break;
     }

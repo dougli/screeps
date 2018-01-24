@@ -66,6 +66,13 @@ class BaseLayout {
       }).sort((a, b) => BUILD_PRIORITY[b.type] - BUILD_PRIORITY[a.type]);
   }
 
+  static getBaseLink(room) {
+    const base = BaseLayout.getBasePos(room);
+    const linkPos = new RoomPosition(base.x + 4, base.y + 6, room.name);
+    return linkPos.lookFor(LOOK_STRUCTURES)
+      .filter(s => s.my && s.structureType === STRUCTURE_LINK)[0];
+  }
+
   static getBasePos(room) {
     if (room.memory.basePos) {
       return room.memory.basePos;
@@ -229,6 +236,7 @@ class BaseLayout {
       case STRUCTURE_TOWER:
       case STRUCTURE_LAB:
       case STRUCTURE_TERMINAL:
+      case STRUCTURE_LINK:
         break;
       default:
         return false;

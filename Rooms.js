@@ -129,22 +129,24 @@ class Rooms {
   }
 
   static getReloadTasks(reloader, room) {
-    if (room.energyAvailable === room.energyCapacityAvailable) {
+    const link = BaseLayout.getBaseLink(room);
+    if (room.energyAvailable === room.energyCapacityAvailable &&
+        (!link || link.energy === LINK_CAPACITY)) {
       return [];
     }
 
     const quadrant = reloader.getQuadrant();
     const toRefill = BaseLayout.getQuadrantEnergyStructures(room, quadrant)
-          .filter((structure) => {
-            switch (structure.structureType) {
-            case STRUCTURE_TOWER:
-              return structure.energy < structure.energyCapacity * 0.8;
-            case STRUCTURE_TERMINAL:
-              return structure.store[RESOURCE_ENERGY] < TERMINAL_ENERGY;
-            default:
-              return structure.energy < structure.energyCapacity;
-            }
-          });
+      .filter((structure) => {
+        switch (structure.structureType) {
+        case STRUCTURE_TOWER:
+          return structure.energy < structure.energyCapacity * 0.8;
+        case STRUCTURE_TERMINAL:
+          return structure.store[RESOURCE_ENERGY] < TERMINAL_ENERGY;
+        default:
+          return structure.energy < structure.energyCapacity;
+        }
+      });
 
     let result = toRefill.map((structure) => {
       return new Task(Task.TRANSFER, structure, 300);
@@ -202,13 +204,21 @@ class Rooms {
     }
 
     // Finally, prioritize upgraders
-    const upgradeContainer = Controllers.getContainerFor(room.controller);
-    if (upgradeContainer) {
-      return [new Task(Task.TRANSFER, upgradeContainer, 1000)];
+    const upgradeLink = Controllers.getLinkFor(room.controller);
+    if (!upgradeLink) {
+      const upgradeContainer = Controllers.getContainerFor(room.controller);
+      if (upgradeContainer) {
+        return [new Task(Task.TRANSFER, upgradeContainer, 1000)];
+      }
+      const upgrader = Controllers.getUpgradersFor(room.controller)[0];
+      if (upgrader) {
+        return [new Task(Task.TRANSFER, upgrader.creep, 1000)];
+      }
     }
-    const upgrader = Controllers.getUpgradersFor(room.controller)[0];
-    if (upgrader) {
-      return [new Task(Task.TRANSFER, upgrader.creep, 1000)];
+
+    // Then, put everything into storage
+    if (storage) {
+      return [new Task(Task.TRANSFER, storage, 100000)];
     }
 
     return [];

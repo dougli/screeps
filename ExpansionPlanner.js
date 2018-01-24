@@ -15,6 +15,7 @@ const Upgrader = require('role.Upgrader');
 const Walls = require('Walls');
 
 const MAX_SITES_PER_ROOM = 4;
+const MIN_TRANSFER_AMOUNT = 400;
 
 var Spawner = {
   spawnMinimumMiner: function(spawn, plan) {
@@ -249,9 +250,9 @@ var ExpansionPlanner = {
     }
 
     // Then, fully expand out upgrade speed
-    if (room.controller &&
-        !hasBuildSites &&
-        (Controllers.getContainerFor(room.controller) || upgradeSpeed === 0) &&
+    if (room.controller && !hasBuildSites &&
+        (Controllers.getContainerFor(room.controller) ||
+         Controllers.getLinkFor(room.controller) || upgradeSpeed === 0)) &&
         energyPerTick - upgradeSpeed > 2) {
       Spawner.spawnUpgrader(spawn, room.controller.id);
       return;
@@ -296,6 +297,8 @@ var ExpansionPlanner = {
     if (spawn) {
       ExpansionPlanner.spawnCreep(room, spawn);
     }
+
+    ExpansionPlanner._processLinks(room);
 
     if (Game.time % 11 === 0) {
       ExpansionPlanner.buildBase(room);
@@ -342,6 +345,27 @@ var ExpansionPlanner = {
     }
     return plans.length > 0;
   },
+
+  _processLinks: function(room) {
+    if (room.controller.level < 5) {
+      return;
+    }
+
+    const base = BaseLayout.getBaseLink(room);
+    const controller = Controllers.getLinkFor(room.controller);
+
+    if (!base || !controller || base.cooldown > 0) {
+      return;
+    }
+
+    const transferAmount = Math.min(
+      controller.energyCapacity - controller.energy,
+      base.energy
+    );
+    if (transferAmount > MIN_TRANSFER_AMOUNT) {
+      base.transferEnergy(controller);
+    }
+  }
 }
 
 Profiler.registerObject(ExpansionPlanner, 'ExpansionPlanner');
