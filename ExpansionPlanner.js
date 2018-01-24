@@ -1,5 +1,6 @@
 const BaseLayout = require('BaseLayout');
 const Builder = require('role.Builder');
+const Claimer = require('role.Claimer');
 const Controllers = require('Controllers');
 const Defender = require('role.Defender');
 const Miner = require('role.Miner');
@@ -49,9 +50,11 @@ var Spawner = {
       return null;
     }
 
-    const parts = minimum
-          ? [MOVE, CARRY]
-          : Mule.getIdealBuild(plan.base, sourcePos, 10);
+    let parts = Mule.getIdealBuild(plan.base, sourcePos, 10);
+    if (minimum && spawn.room.energyAvailable < ideal.length * 50) {
+      parts = [MOVE, CARRY];
+    }
+
     return spawn.spawnCreep(
       parts,
       Math.random().toString(16).substring(2),
@@ -123,7 +126,7 @@ var Spawner = {
 
   spawnClaimer: function(spawn, mission, missionKey) {
     return spawn.createCreep(
-      [MOVE, MOVE, CLAIM, CLAIM],
+      Claimer.getIdealBuild(spawn.room.energyCapacityAvailable),
       undefined,
       {role: 'claimer', mission, missionKey}
     );

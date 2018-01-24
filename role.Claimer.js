@@ -1,4 +1,5 @@
 const BaseUnit = require('BaseUnit');
+const BuildCosts = require('BuildCosts');
 const Profiler = require('Profiler');
 
 const REUSE_PATH = 20;
@@ -6,7 +7,11 @@ const ME = 'dougli';
 
 class Claimer extends BaseUnit {
   static getIdealBuild(energy) {
-    return [MOVE, MOVE, CLAIM, CLAIM];
+    return BuildCosts.getBestRepeatingBuild(
+      [MOVE, CLAIM],
+      4,
+      energy
+    );
   }
 
   getReserveTarget() {

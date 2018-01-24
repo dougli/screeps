@@ -1,6 +1,6 @@
 const Mission = require('Mission');
 
-const RESERVE_NEEDED = 4500;
+const RESERVE_NEEDED = 3000;
 const ME = 'dougli';
 
 class RemoteMiningMission extends Mission {
