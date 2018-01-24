@@ -41,7 +41,7 @@ class Upgrader extends BaseUnit {
 
     if (container) {
       // To save CPU, withdraw only when we need to
-      if (this.creep.carry[RESOURCE_ENERGY] < this.getUpgradeSpeed() * 2) {
+      if (this.creep.carry[RESOURCE_ENERGY] <= this.getUpgradeSpeed()) {
         this.creep.withdraw(container, RESOURCE_ENERGY);
       }
       if (container.hits < container.hitsMax) {

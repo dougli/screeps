@@ -40,12 +40,23 @@ class Reloader extends BaseUnit {
     return this.creep.body.length === ideal.length;
   }
 
-  _tick() {
+  run() {
     const creep = this.creep;
+    const storage = creep.room.storage;
+    if (!storage) {
+      return;
+    }
+
+    // If we're dying, dump everything back in storage
+    if (creep.ticksToLive === 1 &&
+        creep.transfer(storage, RESOURCE_ENERGY, creep.carry.enery) === OK) {
+      return;
+    }
+
     if (!this.hasTask()) {
       if (creep.carry.energy === 0) {
         this.setTask(
-          new Task(Task.PICKUP, creep.room.storage, creep.carryCapacity)
+          new Task(Task.PICKUP, storage, creep.carryCapacity)
         );
       } else {
         const reloadTask = Rooms.getReloadTasks(this, creep.room)[0];
@@ -64,10 +75,8 @@ class Reloader extends BaseUnit {
     if (result == OK) {
       return;
     } else if (result == 'NEED_ENERGY') {
-      this.setTask(
-        new Task(Task.PICKUP, creep.room.storage, creep.carryCapacity)
-      );
-      creep.moveToExperimental(creep.room.storage);
+      this.setTask(new Task(Task.PICKUP, storage, creep.carryCapacity));
+      creep.moveToExperimental(storage);
     } else if (result == 'DONE') {
       // Do nothing - wait another turn
     }

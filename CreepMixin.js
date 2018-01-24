@@ -1,5 +1,6 @@
 const Task = require('Task');
 const Paths = require('Paths');
+const Profiler = require('Profiler');
 
 const MAX_REUSE_PATH = 10;
 const BLOCKED = 'BLOCKED';
@@ -132,8 +133,11 @@ module.exports = {
         return ERR_INVALID_TARGET;
       }
 
-      if (this.pos.isNearTo(destPos)) {
+      const range = this.pos.getRangeTo(destPos);
+      if (range === 1) {
         return this.move(this.pos.getDirectionTo(destPos));
+      } else if (range === 0) {
+        return OK;
       }
 
       let target = makeTarget(destPos.x, destPos.y, destPos.roomName, 1);
