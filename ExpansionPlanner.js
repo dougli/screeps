@@ -268,7 +268,7 @@ var ExpansionPlanner = {
         harvestRoom: requisition.memory.harvestRoom
       })
     } else if (requisition && requisition.type === 'mule') {
-      Spawner.spawnMule({
+      Spawner.spawnMule(spawn, {
         mission: requisition.mission.id,
         key: requisition.key,
         haulTarget: requisition.memory.haulTarget,
@@ -276,7 +276,7 @@ var ExpansionPlanner = {
         base: requisition.memory.base
       });
     } else if (requisition && requisition.type === 'defender') {
-      Spawner.spawnDefender({
+      Spawner.spawnDefender(spawn, {
         mission: requisition.mission.id,
         key: requisition.key,
         defendTarget: requisition.memory.defendTarget,
