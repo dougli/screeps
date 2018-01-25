@@ -81,9 +81,9 @@ class Reloader extends BaseUnit {
     } else if (result == 'DONE') {
       const reloadTasks = Rooms.getReloadTasks(this, creep.room);
       if (taskType === Task.TRANSFER) {
-        this.setTask(reloadTask[1]);
+        this.setTask(reloadTasks[1]);
       } else {
-        this.setTask(reloadTask[0]);
+        this.setTask(reloadTasks[0]);
       }
       if (this.getCurrentTask()) {
         creep.moveToExperimental(this.getCurrentTask().target);
