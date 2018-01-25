@@ -6,6 +6,7 @@ const Profiler = require('Profiler');
 
 const MIN_STORAGE_ENERGY = 1000;
 const TARGET_STORAGE_ENERGY = 50000;
+const TRADE_ENERGY = 100000;
 const TERMINAL_ENERGY = 10000;
 const MIN_WALL_REPAIR = 5000;
 
@@ -129,6 +130,10 @@ class Rooms {
   }
 
   static getReloadTasks(reloader, room) {
+    if (!room.storage || !room.storage.my) {
+      return [];
+    }
+
     const link = BaseLayout.getBaseLink(room);
     if (room.energyAvailable === room.energyCapacityAvailable &&
         (!link || link.energy === LINK_CAPACITY)) {
@@ -142,7 +147,11 @@ class Rooms {
         case STRUCTURE_TOWER:
           return structure.energy < structure.energyCapacity * 0.8;
         case STRUCTURE_TERMINAL:
-          return structure.store[RESOURCE_ENERGY] < TERMINAL_ENERGY;
+          return structure.store[RESOURCE_ENERGY] < TERMINAL_ENERGY &&
+            room.storage.store[RESOURCE_ENERGY] >= TRADE_ENERGY;
+        case STRUCTURE_LINK:
+          return structure.energy < structure.energyCapacity &&
+            room.storage.store[RESOURCE_ENERGY] >= TARGET_STORAGE_ENERGY;
         default:
           return structure.energy < structure.energyCapacity;
         }
