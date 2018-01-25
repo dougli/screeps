@@ -42,7 +42,7 @@ class Mule extends BaseUnit {
       const capacity = room.energyCapacityAvailable;
       HAUL_DISTANCE[cacheKey] = Math.max(1, Paths.search(
         origin,
-        sourcePos,
+        {pos: sourcePos, range: 1},
         {ignoreCreeps: true, ignoreRoads: true}
       ).cost * 2);
     }
