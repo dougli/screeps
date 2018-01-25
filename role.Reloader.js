@@ -71,6 +71,7 @@ class Reloader extends BaseUnit {
       }
     }
 
+    const taskType = this.getCurrentTask().type;
     const result = this._doTask();
     if (result == OK) {
       return;
@@ -78,6 +79,15 @@ class Reloader extends BaseUnit {
       this.setTask(new Task(Task.PICKUP, storage, creep.carryCapacity));
       creep.moveToExperimental(storage);
     } else if (result == 'DONE') {
+      const reloadTasks = Rooms.getReloadTasks(this, creep.room);
+      if (taskType === Task.TRANSFER) {
+        this.setTask(reloadTask[1]);
+      } else {
+        this.setTask(reloadTask[0]);
+      }
+      if (this.getCurrentTask()) {
+        creep.moveToExperimental(this.getCurrentTask().target);
+      }
       // Do nothing - wait another turn
     }
   }
