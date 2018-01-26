@@ -55,6 +55,10 @@ class Mission {
   }
 
   requisitionCreep(key, type, memory) {
+    if (this.creeps[key]) {
+      return this.creeps[key];
+    }
+
     if (Game.time != LastTick) {
       REQUESTED_CREEPS = [];
       LastTick = Game.time;

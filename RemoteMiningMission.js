@@ -43,11 +43,9 @@ class RemoteMiningMission extends Mission {
   }
 
   _defend() {
-    if (!this.creeps.defender) {
-      this.requisitionCreep('defender', 'defender', {
-        defendTarget: this.memory.room,
-      });
-    }
+    this.requisitionCreep('defender', 'defender', {
+      defendTarget: this.memory.room,
+    });
   }
 
   _reserve() {
@@ -71,7 +69,7 @@ class RemoteMiningMission extends Mission {
       reserveNeeded = true;
     }
 
-    if (reserveNeeded && !this.creeps.claimer) {
+    if (reserveNeeded) {
       this.requisitionCreep('claimer', 'claimer');
     }
   }
@@ -79,21 +77,17 @@ class RemoteMiningMission extends Mission {
   _mine(sourceID, memory) {
     const minerID = 'miner_' + sourceID;
     const muleID = 'mule_' + sourceID;
-    if (!this.creeps[minerID]) {
-      this.requisitionCreep(
-        minerID,
-        'miner',
-        {harvestTarget: sourceID, harvestRoom: this.memory.room}
-      );
-    }
+    this.requisitionCreep(
+      minerID,
+      'miner',
+      {harvestTarget: sourceID, harvestRoom: this.memory.room}
+    );
 
-    if (!this.creeps[muleID]) {
-      this.requisitionCreep(muleID, 'mule', {
-        haulTarget: sourceID,
-        haulRoom: this.memory.room,
-        base: this.memory.base
-      });
-    }
+    this.requisitionCreep(muleID, 'mule', {
+      haulTarget: sourceID,
+      haulRoom: this.memory.room,
+      base: this.memory.base
+    });
   }
 }
 

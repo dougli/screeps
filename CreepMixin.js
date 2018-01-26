@@ -40,7 +40,10 @@ function calculatePath(creep, target, freshMatrix) {
   };
 
   const opts = {freshMatrix: !!freshMatrix};
-  if (creep.getActiveBodyparts(MOVE) * 2 >= creep.body.length) {
+  const moveParts = creep.getActiveBodyparts(MOVE);
+  if (moveParts === creep.body.length) {
+    opts.ignoreTerrain = true;
+  } else if (moveParts * 2 >= creep.body.length) {
     opts.ignoreRoads = true;
   }
 

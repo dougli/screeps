@@ -72,6 +72,8 @@ const Paths = {
 
       swampCost: opts.ignoreTerrain ? 1 : (opts.ignoreRoads ? 5 : 10),
 
+      heuristicWeight: opts.ignoreTerrain || opts.ignoreRoads ? 1 : 1.5,
+
       roomCallback: (roomName) => {
         if (sameRoom && roomName !== origin.roomName) {
           return false;

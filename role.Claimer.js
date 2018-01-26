@@ -42,7 +42,7 @@ class Claimer extends BaseUnit {
         targetRoom.controller.sign.username !== ME) {
       this.creep.signController(
         targetRoom.controller,
-        'My mine miners mining mines mine my mines.');
+        'Proud member of the 10 CPU club!');
     }
   }
 }
