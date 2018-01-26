@@ -13,6 +13,9 @@ const Overseer = {
   run: function() {
     for (const name in Game.rooms) {
       const room = Game.rooms[name];
+      if (!Memory.rooms) {
+        Memory.rooms = {};
+      }
       let memory = Memory.rooms[name];
       const mine = room && room.controller && room.controller.my;
 

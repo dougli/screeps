@@ -108,7 +108,11 @@ class Mule extends BaseUnit {
       this._setPickupTask();
       this._doTask();
     } else if (result == 'DONE') {
-      // Do nothing - wait another turn
+      let base = Game.rooms[creep.memory.base] || creep.room;
+      this.setTask(Rooms.getDropoffTasks(base, creep.pos)[0]);
+      if (this.getCurrentTask()) {
+        this.creep.moveToExperimental(this.getCurrentTask().target);
+      }
     }
   }
 }

@@ -16,6 +16,10 @@ class BaseUnit {
     }
   }
 
+  isSpawning() {
+    return this.creep.spawning;
+  }
+
   hasTask() {
     return !!this.getCurrentTask();
   }
@@ -99,7 +103,9 @@ class BaseUnit {
       if (container) {
         task.target = container;
       } else if (Sources.getMinersFor(task.target).length) {
-        task.target = Sources.getMinersFor(task.target)[0].creep;
+        const miner = Sources.getMinersFor(task.target)[0].creep;
+        creep.moveToExperimental(miner);
+        return OK;
       }
     }
 
@@ -121,9 +127,6 @@ class BaseUnit {
       default:
         return DONE;
       }
-    } else if (task.target instanceof Creep) {
-      creep.moveToExperimental(task.target);
-      return OK;
     } else {
       creep.moveToExperimental(task.target);
       return OK;
@@ -137,7 +140,7 @@ class BaseUnit {
     if (target instanceof Creep) {
       if (creep.pos.isNearTo(target)) {
         creep.drop(RESOURCE_ENERGY);
-        return DONE;
+        return NEED_ENERGY;
       } else {
         creep.moveToExperimental(target);
         return OK;

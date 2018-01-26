@@ -24,6 +24,11 @@ class RemoteMiningMission extends Mission {
   }
 
   run() {
+    if (!Game.rooms[this.memory.base]) {
+      this.concludeFailedMission();
+      return;
+    }
+
     const room = Game.rooms[this.memory.room];
     if (!room || room.find(FIND_HOSTILE_CREEPS).length > 0) {
       this._defend();

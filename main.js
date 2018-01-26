@@ -34,9 +34,6 @@ module.exports.loop = function () {
     const units = [];
     for (var name in Game.creeps) {
       var creep = Game.creeps[name];
-      if (creep.spawning) {
-        continue;
-      }
 
       switch (creep.memory.role) {
       case 'miner':
@@ -91,6 +88,10 @@ module.exports.loop = function () {
     }
 
     units.forEach((unit) => {
+      if (unit.isSpawning()) {
+        return;
+      }
+
       unit.run();
       unit.creep.save();
     });
