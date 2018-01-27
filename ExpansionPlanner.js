@@ -28,6 +28,7 @@ var Spawner = {
           role: 'miner',
           harvestTarget: plan.harvestTarget,
           harvestRoom: plan.harvestRoom,
+          base: plan.base,
         }});
     }
   },
@@ -40,18 +41,23 @@ var Spawner = {
         role: 'miner',
         harvestTarget: plan.harvestTarget,
         harvestRoom: plan.harvestRoom,
+        base: plan.base,
         mission: plan.mission,
         missionKey: plan.key,
       }});
   },
 
   spawnMule: function(spawn, plan, minimum = false) {
-    const sourcePos = Sources.getSourcePosition(plan.haulRoom, plan.haulTarget);
-    if (!sourcePos) {
+    const distance = Sources.getDistanceToBase(
+      plan.haulRoom,
+      plan.haulTarget,
+      plan.base
+    );
+    if (!distance) {
       return null;
     }
 
-    let parts = Mule.getIdealBuild(plan.base, sourcePos, 10);
+    let parts = Mule.getIdealBuild(plan.base, distance, 10);
     if (minimum && spawn.room.energyAvailable < parts.length * 50) {
       parts = [MOVE, CARRY];
     }
@@ -172,7 +178,8 @@ var ExpansionPlanner = {
       if (!Sources.getMinersFor(source, true).length) {
         const plan = {
           harvestTarget: source.id,
-          harvestRoom: room.name
+          harvestRoom: room.name,
+          base: room.name
         };
 
         if (!hasMiner) {
@@ -181,7 +188,7 @@ var ExpansionPlanner = {
           Spawner.spawnMiner(spawn, plan);
         }
         return;
-      } else if (!Sources.getMulesFor(source).length) {
+      } else if (!Sources.getMulesFor(source, true).length) {
         if (!hasMule) {
           Spawner.spawnMule(spawn, {
             haulTarget: source.id,
@@ -204,7 +211,8 @@ var ExpansionPlanner = {
       if (Sources.getRemainingMineSpeed(source) > 1) {
         Spawner.spawnMiner(spawn, {
           harvestTarget: source.id,
-          harvestRoom: room.name
+          harvestRoom: room.name,
+          base: room.name
         });
         return;
       }
@@ -269,8 +277,9 @@ var ExpansionPlanner = {
         mission: requisition.mission.id,
         key: requisition.key,
         harvestTarget: requisition.memory.harvestTarget,
-        harvestRoom: requisition.memory.harvestRoom
-      })
+        harvestRoom: requisition.memory.harvestRoom,
+        base: room.name
+      });
     } else if (requisition && requisition.type === 'mule') {
       Spawner.spawnMule(spawn, {
         mission: requisition.mission.id,

@@ -7,17 +7,14 @@ const Paths = require('Paths');
 const BaseLayout = require('BaseLayout');
 const Sources = require('Sources');
 
-const HAUL_DISTANCE = {};
-
 class Mule extends BaseUnit {
-  static getIdealBuild(baseRoom, sourcePos, energyPerTick) {
+  static getIdealBuild(baseRoom, distance, energyPerTick) {
     const room = Game.rooms[baseRoom];
     if (!room) {
       return [];
     }
 
-    const roundTripTicks = Mule.getHaulDistance(baseRoom, sourcePos);
-    const energyTotal = energyPerTick * roundTripTicks;
+    const energyTotal = energyPerTick * distance * 2;
     const carryNeeded = Math.ceil(energyTotal / CARRY_CAPACITY) + 1;
     const capacity = room.energyCapacityAvailable;
 
@@ -26,28 +23,6 @@ class Mule extends BaseUnit {
       carryNeeded,
       capacity
     );
-  }
-
-  static getHaulDistance(baseRoom, sourcePos) {
-    const room = Game.rooms[baseRoom];
-    if (!room) {
-      return null;
-    }
-
-    const cacheKey = [baseRoom, sourcePos.x, sourcePos.y, sourcePos.roomName]
-          .join(',');
-
-    if (!HAUL_DISTANCE[cacheKey]) {
-      const origin = BaseLayout.getBaseCenter(room);
-      const capacity = room.energyCapacityAvailable;
-      HAUL_DISTANCE[cacheKey] = Math.max(1, Paths.search(
-        origin,
-        {pos: sourcePos, range: 1},
-        {ignoreCreeps: true, ignoreRoads: true}
-      ).cost * 2);
-    }
-
-    return HAUL_DISTANCE[cacheKey];
   }
 
   constructor(creep) {
@@ -59,22 +34,24 @@ class Mule extends BaseUnit {
     }
   }
 
+  isDyingSoon() {
+    const buildTime = this.creep.body.length * 3;
+    let walkTime = this.getHaulDistance();
+    return this.creep.ticksToLive <= buildTime + walkTime;
+  }
+
   getHaulSource() {
     return Game.getObjectById(this.creep.memory.haulTarget);
   }
 
   getHaulDistance() {
     const mem = this.creep.memory;
-    if (!mem.haulDistance) {
-      const sourcePos = Sources.getSourcePosition(mem.haulRoom, mem.haulTarget);
-      mem.haulDistance = Mule.getHaulDistance(this.creep.memory.base, sourcePos);
-    }
-    return mem.haulDistance;
+    return Sources.getDistanceToBase(mem.haulRoom, mem.haulTarget, mem.base);
   }
 
   getMuleSpeed() {
     return this.creep.getActiveBodyparts(CARRY) * CARRY_CAPACITY /
-      this.getHaulDistance();
+      (this.getHaulDistance() * 2);
   }
 
   _setPickupTask() {
@@ -88,6 +65,17 @@ class Mule extends BaseUnit {
     this.setTask(task);
   }
 
+  _setDropoffTask(curr) {
+    const base = Game.rooms[this.creep.memory.base] || this.creep.room;
+    const tasks = Rooms.getDropoffTasks(base, this.creep.pos);
+    for (const task of tasks) {
+      if (!curr || task.target.id !== curr.target.id) {
+        this.setTask(task);
+        return;
+      }
+    }
+  }
+
   _tick() {
     const creep = this.creep;
 
@@ -95,12 +83,12 @@ class Mule extends BaseUnit {
       if (creep.carry.energy === 0) {
         this._setPickupTask();
       } else {
-        let base = Game.rooms[creep.memory.base] || creep.room;
         // Find a dropoff task
-        this.setTask(Rooms.getDropoffTasks(base, creep.pos)[0]);
+        this._setDropoffTask();
       }
     }
 
+    const curr = this.getCurrentTask();
     const result = this._doTask();
     if (result == OK) {
       return;
@@ -108,8 +96,7 @@ class Mule extends BaseUnit {
       this._setPickupTask();
       this._doTask();
     } else if (result == 'DONE') {
-      let base = Game.rooms[creep.memory.base] || creep.room;
-      this.setTask(Rooms.getDropoffTasks(base, creep.pos)[0]);
+      this._setDropoffTask(curr);
       if (this.getCurrentTask()) {
         this.creep.moveToExperimental(this.getCurrentTask().target);
       }

@@ -22,6 +22,21 @@ class Miner extends BaseUnit {
     }
   }
 
+  isDyingSoon() {
+    const mem = this.creep.memory;
+    const buildTime = this.creep.body.length * 3;
+    let walkTime = 0;
+    if (mem.base) {
+      walkTime = Sources.getDistanceToBase(
+        mem.harvestRoom,
+        mem.harvestTarget,
+        mem.base
+      ) * 3;
+    }
+
+    return this.creep.ticksToLive <= buildTime + walkTime;
+  }
+
   getMineSource() {
     return Game.getObjectById(this.creep.memory.harvestTarget);
   }

@@ -1,4 +1,7 @@
+const BaseLayout = require('BaseLayout');
 const Paths = require('Paths');
+
+const DIST_CACHE_TIME = 997;
 
 class Sources {
   /**
@@ -68,8 +71,44 @@ class Sources {
   /**
    * Returns Mule creeps assigned to this source.
    */
-  static getMulesFor(source) {
-    return (source.mules || []);
+  static getMulesFor(source, ignoreDyingCreeps) {
+    let result = (source.mules || []);
+    if (ignoreDyingCreeps) {
+      result = result.filter((mule) => !mule.isDyingSoon());
+    }
+    return result;
+  }
+
+  static getDistanceToBase(sourceRoom, id, baseRoom) {
+    const sourcePos = Sources.getSourcePosition(sourceRoom, id);
+    const base = Game.rooms[baseRoom];
+    const mem = Memory.rooms[sourceRoom] && Memory.rooms[sourceRoom].sources &&
+        Memory.rooms[sourceRoom].sources[id];
+
+    if (!mem || !base || !sourcePos) {
+      return null;
+    }
+
+    if (!mem.dist) {
+      mem.dist = {};
+    } else if (!mem.dist[sourceRoom]) {
+      mem.dist[sourceRoom] = {};
+    }
+
+    if (!mem.dist[sourceRoom] ||
+        mem.dist[sourceRoom].time <= Game.time - DIST_CACHE_TIME) {
+      const origin = BaseLayout.getBaseCenter(base);
+      mem.dist[sourceRoom] = {
+        dist: Math.max(1, Paths.search(
+          origin,
+          {pos: sourcePos, range: 1},
+          {ignoreCreeps: true, ignoreRoads: true}
+        ).cost),
+        time: Game.time
+      };
+    }
+
+    return mem.dist[sourceRoom].dist;
   }
 
   static getRemainingMuleSpeed(source) {
