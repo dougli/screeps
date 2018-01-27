@@ -11,7 +11,13 @@ class BaseUnit {
   constructor(creep) {
     this.creep = creep;
     this.creep.unit = this;
-    if (this.getMission()) {
+
+    const replenishTarget = this.getReplenishTarget();
+    if (replenishTarget) {
+      replenishTarget.replenishedBy = this;
+    }
+
+    if (this.getMission() && !replenishTarget) {
       this.getMission().provideCreep(this.getMissionKey(), this);
     }
   }
@@ -40,6 +46,28 @@ class BaseUnit {
 
   getMissionKey() {
     return this.creep.memory.missionKey;
+  }
+
+  getReplenishTarget() {
+    if (!this.creep.memory.replenish) {
+      return null;
+    }
+
+    const target = Game.getObjectById(this.creep.memory.replenish);
+    if (!target) {
+      delete this.creep.memory.replenish;
+    }
+    return target;
+  }
+
+  getReplenishedBy() {
+    return this.creep.replenishedBy;
+  }
+
+  moveToReplenishTarget() {
+    const target = this.getReplenishTarget();
+    target && this.creep.moveToExperimental(target);
+    return !!target;
   }
 
   isDyingSoon() {

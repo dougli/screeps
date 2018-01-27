@@ -54,16 +54,24 @@ class Mission {
     delete Game.missions[this.id];
   }
 
-  requisitionCreep(key, type, memory) {
-    if (this.creeps[key]) {
-      return this.creeps[key];
-    }
+  requisitionCreep(key, type, memory, replenish) {
+    const creep = this.creeps[key];
 
     if (Game.time != LastTick) {
       REQUESTED_CREEPS = [];
       LastTick = Game.time;
     }
-    REQUESTED_CREEPS.push({mission: this, key, type, memory});
+
+    if (!creep ||
+        (replenish && creep.isDyingSoon() && !creep.getReplenishedBy())) {
+      if (replenish && creep) {
+        memory.replenish = creep.creep.id;
+      }
+
+      REQUESTED_CREEPS.push({mission: this, key, type, memory});
+    }
+
+    return creep;
   }
 
   provideCreep(key, creep) {

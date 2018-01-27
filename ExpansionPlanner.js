@@ -44,6 +44,7 @@ var Spawner = {
         base: plan.base,
         mission: plan.mission,
         missionKey: plan.key,
+        replenish: plan.replenish,
       }});
   },
 
@@ -278,7 +279,8 @@ var ExpansionPlanner = {
         key: requisition.key,
         harvestTarget: requisition.memory.harvestTarget,
         harvestRoom: requisition.memory.harvestRoom,
-        base: room.name
+        base: room.name,
+        replenish: requisition.memory.replenish,
       });
     } else if (requisition && requisition.type === 'mule') {
       Spawner.spawnMule(spawn, {

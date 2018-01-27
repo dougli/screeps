@@ -46,6 +46,10 @@ class Miner extends BaseUnit {
   }
 
   run() {
+    if (this.moveToReplenishTarget()) {
+      return;
+    }
+
     const creep = this.creep;
     var source = this.getMineSource();
     if (!source) {

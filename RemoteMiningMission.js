@@ -80,7 +80,8 @@ class RemoteMiningMission extends Mission {
     this.requisitionCreep(
       minerID,
       'miner',
-      {harvestTarget: sourceID, harvestRoom: this.memory.room}
+      {harvestTarget: sourceID, harvestRoom: this.memory.room},
+      true
     );
 
     this.requisitionCreep(muleID, 'mule', {
