@@ -37,7 +37,7 @@ class Mule extends BaseUnit {
   isDyingSoon() {
     const buildTime = this.creep.body.length * 3;
     let walkTime = this.getHaulDistance();
-    return this.creep.ticksToLive <= buildTime + walkTime;
+    return this.creep.ticksToLive <= buildTime + walkTime + 1;
   }
 
   getHaulSource() {
@@ -77,6 +77,13 @@ class Mule extends BaseUnit {
   }
 
   _tick() {
+    if (this.moveToReplenishTarget()) {
+      return;
+    } else if (this.creep.ticksToLive === 1 && this.getReplenishedBy()) {
+      this.creep.transfer(this.getReplenishedBy().creep, RESOURCE_ENERGY);
+      return;
+    }
+
     const creep = this.creep;
 
     if (!this.hasTask()) {

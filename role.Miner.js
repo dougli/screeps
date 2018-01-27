@@ -34,7 +34,7 @@ class Miner extends BaseUnit {
       ) * 3;
     }
 
-    return this.creep.ticksToLive <= buildTime + walkTime;
+    return this.creep.ticksToLive <= buildTime + walkTime + 1;
   }
 
   getMineSource() {

@@ -71,6 +71,7 @@ var Spawner = {
         haulTarget: plan.haulTarget,
         haulRoom: plan.haulRoom,
         base: plan.base,
+        replenish: plan.replenish,
         mission: plan.mission,
         missionKey: plan.key,
       }});
@@ -288,7 +289,8 @@ var ExpansionPlanner = {
         key: requisition.key,
         haulTarget: requisition.memory.haulTarget,
         haulRoom: requisition.memory.haulRoom,
-        base: requisition.memory.base
+        base: requisition.memory.base,
+        replenish: requisition.memory.replenish,
       });
     } else if (requisition && requisition.type === 'defender') {
       Spawner.spawnDefender(spawn, {
@@ -337,8 +339,10 @@ var ExpansionPlanner = {
       return;
     }
 
-    plans = Walls.getWallPlansToBuild(room);
-    ExpansionPlanner._buildPlans(room, plans, numToBuild);
+    if (room.storage && room.storage.my) {
+      plans = Walls.getWallPlansToBuild(room);
+      ExpansionPlanner._buildPlans(room, plans, numToBuild);
+    }
   },
 
   _buildPlans: function(room, plans, numToBuild) {

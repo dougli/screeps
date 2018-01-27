@@ -84,11 +84,22 @@ class RemoteMiningMission extends Mission {
       true
     );
 
-    this.requisitionCreep(muleID, 'mule', {
-      haulTarget: sourceID,
-      haulRoom: this.memory.room,
-      base: this.memory.base
-    });
+    let haulSpeedRemaining = 10;
+    let muleNum = 1;
+    while (haulSpeedRemaining > 1) {
+      let mule = this.requisitionCreep(muleID + '_' + muleNum, 'mule', {
+        haulTarget: sourceID,
+        haulRoom: this.memory.room,
+        base: this.memory.base
+      }, true);
+
+      if (!mule) {
+        break;
+      }
+
+      haulSpeedRemaining -= mule.getMuleSpeed();
+      muleNum++;
+    }
   }
 }
 
