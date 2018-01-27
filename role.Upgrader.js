@@ -7,7 +7,8 @@ class Upgrader extends BaseUnit {
   static getIdealBuild(capacity) {
     return BuildCosts.getBestBuild(
       [MOVE, CARRY, WORK, WORK, WORK, MOVE, WORK, WORK, WORK, WORK,
-       MOVE, WORK, WORK, WORK, WORK, MOVE, WORK, WORK, WORK, WORK],
+       MOVE, WORK, WORK, WORK, WORK, MOVE, WORK, WORK, WORK, WORK,
+       MOVE, CARRY, WORK, WORK, WORK],
       capacity);
   }
 
