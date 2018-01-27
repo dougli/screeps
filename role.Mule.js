@@ -77,11 +77,14 @@ class Mule extends BaseUnit {
   }
 
   _tick() {
+    const replenishedBy = this.getReplenishedBy();
     if (this.moveToReplenishTarget()) {
       return;
-    } else if (this.creep.ticksToLive === 1 && this.getReplenishedBy()) {
-      this.creep.transfer(this.getReplenishedBy().creep, RESOURCE_ENERGY);
-      return;
+    } else if (replenishedBy) {
+      if (this.creep.transfer(replenishedBy.creep, RESOURCE_ENERGY) === OK) {
+        this.creep.suicide();
+        return;
+      }
     }
 
     const creep = this.creep;

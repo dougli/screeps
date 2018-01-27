@@ -6,7 +6,7 @@ const Profiler = require('Profiler');
 class Builder extends BaseUnit {
   static getIdealBuild(energy) {
     return BuildCosts.getBestBuild(
-      [MOVE, CARRY, WORK, WORK, WORK, MOVE, WORK],
+      [MOVE, CARRY, WORK, WORK, WORK, MOVE, WORK, WORK, WORK, WORK],
       energy
     );
   }
