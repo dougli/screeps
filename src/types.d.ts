@@ -18,7 +18,7 @@ interface RoomMemory {
 }
 
 interface Game {
-  missions: Array<Mission>;
+  missions: Mission[];
 }
 
 interface Arbitrage {

@@ -4,10 +4,10 @@ import * as ExpansionPlanner from 'ExpansionPlanner';
 import * as MissionLoader from 'MissionLoader';
 import * as Overseer from 'Overseer';
 import * as Profiler from 'Profiler';
+
 import { Builder } from 'role.Builder';
 import { Claimer } from 'role.Claimer';
 import { Defender } from 'role.Defender';
-import { ErrorMapper } from 'utils/ErrorMapper';
 import { Miner } from 'role.Miner';
 import { Mule } from 'role.Mule';
 import { Reloader } from 'role.Reloader';
@@ -15,6 +15,7 @@ import { Repairer } from 'role.Repairer';
 import { Scout } from 'role.Scout';
 import { Tower } from 'role.Tower';
 import { Upgrader } from 'role.Upgrader';
+import { ErrorMapper } from 'utils/ErrorMapper';
 
 CreepMixin.run();
 
@@ -25,7 +26,7 @@ Profiler.enable();
 export const loop = ErrorMapper.wrapLoop(() => {
   Profiler.wrap(() => {
     // Clean up old memory
-    for (var i in Memory.creeps) {
+    for (const i in Memory.creeps) {
       if (!Game.creeps[i]) {
         delete Memory.creeps[i];
       }
@@ -35,8 +36,8 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
     // Initialize units
     const units = [];
-    for (var name in Game.creeps) {
-      var creep = Game.creeps[name];
+    for (const name in Game.creeps) {
+      const creep = Game.creeps[name];
 
       switch (creep.memory.role) {
       case 'miner':
@@ -72,8 +73,8 @@ export const loop = ErrorMapper.wrapLoop(() => {
     }
 
     const structures = [];
-    for (var name in Game.structures) {
-      var structure = Game.structures[name];
+    for (const name in Game.structures) {
+      const structure = Game.structures[name];
       if (structure.structureType === STRUCTURE_TOWER) {
         structures.push(new Tower(structure));
       }
@@ -81,11 +82,11 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
     Overseer.run();
 
-    for (let id in Game.missions) {
+    for (const id in Game.missions) {
       Game.missions[id].run();
     }
 
-    for (let id in Game.rooms) {
+    for (const id in Game.rooms) {
       ExpansionPlanner.run(Game.rooms[id]);
       Arbitrage.run(Game.rooms[id]);
     }
@@ -99,6 +100,6 @@ export const loop = ErrorMapper.wrapLoop(() => {
       unit.creep.save();
     });
 
-    structures.forEach(structure => structure.run());
+    structures.forEach((structure) => structure.run());
   });
 });
