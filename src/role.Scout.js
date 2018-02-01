@@ -27,4 +27,4 @@ class Scout extends BaseUnit {
 
 Profiler.registerClass(Scout, 'Scout');
 
-module.exports = Scout;
+exports.Scout = Scout;

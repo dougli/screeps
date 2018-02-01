@@ -120,4 +120,4 @@ class Miner extends BaseUnit {
 
 Profiler.registerClass(Miner, 'Miner');
 
-module.exports = Miner;
+exports.Miner = Miner;

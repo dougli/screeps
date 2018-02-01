@@ -60,4 +60,4 @@ class Tower {
   }
 }
 
-module.exports = Tower;
+exports.Tower = Tower;

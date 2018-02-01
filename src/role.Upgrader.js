@@ -102,4 +102,4 @@ class Upgrader extends BaseUnit {
 
 Profiler.registerClass(Upgrader, 'Upgrader');
 
-module.exports = Upgrader;
+exports.Upgrader = Upgrader;

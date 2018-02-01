@@ -29,4 +29,4 @@ class Defender extends BaseUnit {
   }
 }
 
-module.exports = Defender;
+exports.Defender = Defender;

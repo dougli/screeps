@@ -50,4 +50,4 @@ class Repairer extends BaseUnit {
 
 }
 
-module.exports = Repairer;
+exports.Repairer = Repairer;

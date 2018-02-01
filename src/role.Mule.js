@@ -116,4 +116,4 @@ class Mule extends BaseUnit {
 
 Profiler.registerClass(Mule, 'Mule');
 
-module.exports = Mule;
+exports.Mule = Mule;

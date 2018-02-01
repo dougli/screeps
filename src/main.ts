@@ -1,26 +1,29 @@
-const Arbitrage = require('Arbitrage');
-const Builder = require('role.Builder');
-const Claimer = require('role.Claimer');
-const Defender = require('role.Defender');
-const ExpansionPlanner = require('ExpansionPlanner');
-const Miner = require('role.Miner');
-const MissionLoader = require('MissionLoader');
-const Mule = require('role.Mule');
-const Overseer = require('Overseer');
-const Profiler = require('Profiler');
-const Reloader = require('role.Reloader');
-const Repairer = require('role.Repairer');
-const Scout = require('role.Scout');
-const Tower = require('role.Tower');
-const Upgrader = require('role.Upgrader');
+import * as Arbitrage from 'Arbitrage';
+import * as CreepMixin from 'CreepMixin';
+import * as ExpansionPlanner from 'ExpansionPlanner';
+import * as MissionLoader from 'MissionLoader';
+import * as Overseer from 'Overseer';
+import * as Profiler from 'Profiler';
+import { Builder } from 'role.Builder';
+import { Claimer } from 'role.Claimer';
+import { Defender } from 'role.Defender';
+import { ErrorMapper } from 'utils/ErrorMapper';
+import { Miner } from 'role.Miner';
+import { Mule } from 'role.Mule';
+import { Reloader } from 'role.Reloader';
+import { Repairer } from 'role.Repairer';
+import { Scout } from 'role.Scout';
+import { Tower } from 'role.Tower';
+import { Upgrader } from 'role.Upgrader';
 
-require('CreepMixin').run();
-require('mixin.Room').run();
+CreepMixin.run();
 
 Profiler.enable();
 
-module.exports.loop = function () {
-  Profiler.wrap(_ => {
+// When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
+// This utility uses source maps to get the line numbers and file names of the original, TS source code
+export const loop = ErrorMapper.wrapLoop(() => {
+  Profiler.wrap(() => {
     // Clean up old memory
     for (var i in Memory.creeps) {
       if (!Game.creeps[i]) {
@@ -98,4 +101,4 @@ module.exports.loop = function () {
 
     structures.forEach(structure => structure.run());
   });
-}
+});

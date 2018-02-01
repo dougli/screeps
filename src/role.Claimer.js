@@ -49,4 +49,4 @@ class Claimer extends BaseUnit {
 
 Profiler.registerClass(Claimer, 'Claimer');
 
-module.exports = Claimer;
+exports.Claimer = Claimer;

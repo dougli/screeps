@@ -54,4 +54,4 @@ class Builder extends BaseUnit {
 
 Profiler.registerClass(Builder, 'Builder');
 
-module.exports = Builder;
+exports.Builder = Builder;

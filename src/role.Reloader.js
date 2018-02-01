@@ -100,4 +100,4 @@ class Reloader extends BaseUnit {
 
 Profiler.registerClass(Reloader, 'Reloader');
 
-module.exports = Reloader;
+exports.Reloader = Reloader;
