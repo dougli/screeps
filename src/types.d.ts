@@ -24,3 +24,9 @@ interface Game {
 interface Mission {
   run: () => void;
 }
+
+interface BaseUnit {
+  isDyingSoon: () => boolean;
+  getReplenishedBy: () => BaseUnit;
+  creep: Creep;
+}

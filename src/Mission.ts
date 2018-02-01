@@ -1,23 +1,35 @@
-let REQUESTED_CREEPS = [];
+let REQUESTED_CREEPS: MissionRequisition[] = [];
 let LastTick = 0;
 
+interface MissionRequisition {
+  mission: Mission;
+  key: string;
+  type: string;
+  memory: {};
+}
+
 class Mission {
-  static getCreepRequisitions() {
-    if (Game.time != LastTick) {
+  private id: string;
+  private creeps: {
+    [key: string]: BaseUnit;
+  };
+
+  public static getCreepRequisitions(): MissionRequisition[] {
+    if (Game.time !== LastTick) {
       REQUESTED_CREEPS = [];
       LastTick = Game.time;
     }
     return REQUESTED_CREEPS;
   }
 
-  constructor(id, memory) {
+  constructor(id: string | null, memory: {}) {
     this.id = id || Math.random().toString(16).substr(2);
     this.memory = memory || {};
     this.creeps = {};
     Game.missions[this.id] = this;
   }
 
-  get memory() {
+  get memory(): {} {
     if (!Memory.missions) {
       Memory.missions = {};
     }
@@ -27,18 +39,18 @@ class Mission {
     return Memory.missions[this.id];
   }
 
-  set memory(value) {
+  set memory(value: {}) {
     if (!Memory.missions) {
       Memory.missions = {};
     }
     Memory.missions[this.id] = value;
   }
 
-  get name() {
+  get name(): string {
     return 'Mission ' + this.id;
   }
 
-  concludeSuccessfulMission() {
+  private concludeSuccessfulMission(): void {
     const message = 'Mission: ' + this.name + ' was successful!';
     Game.notify(message, 1440);
     console.log(message);
@@ -46,7 +58,7 @@ class Mission {
     delete Game.missions[this.id];
   }
 
-  concludeFailedMission() {
+  private concludeFailedMission(): void {
     const message = 'Mission: ' + this.name + ' failed.';
     Game.notify(message);
     console.log(message);
@@ -54,10 +66,15 @@ class Mission {
     delete Game.missions[this.id];
   }
 
-  requisitionCreep(key, type, memory, replenish) {
-    const creep = this.creeps[key];
+  private requisitionCreep(
+    key: string,
+    type: string,
+    memory: {[key: string]: any},
+    replenish: boolean,
+  ): BaseUnit | null {
+    const creep = this.creeps[key] || null;
 
-    if (Game.time != LastTick) {
+    if (Game.time !== LastTick) {
       REQUESTED_CREEPS = [];
       LastTick = Game.time;
     }
@@ -74,9 +91,9 @@ class Mission {
     return creep;
   }
 
-  provideCreep(key, creep) {
+  public provideCreep(key: string, creep: BaseUnit): void {
     this.creeps[key] = creep;
   }
 }
 
-module.exports = Mission;
+export default Mission;
