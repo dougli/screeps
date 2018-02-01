@@ -28,7 +28,6 @@ export default {
     commonjs({
       include: ['node_modules/**', 'src/**'],
       namedExports: {
-        'src/Arbitrage.js': ['run'],
         'src/ExpansionPlanner.js': ['run'],
         'src/MissionLoader.js': ['loadAll'],
         'src/Overseer.js': ['run'],

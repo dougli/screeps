@@ -21,6 +21,6 @@ interface Game {
   missions: Mission[];
 }
 
-interface Arbitrage {
+interface Mission {
   run: () => void;
 }

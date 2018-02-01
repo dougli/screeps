@@ -1,4 +1,4 @@
-import * as Arbitrage from 'Arbitrage';
+import { Arbitrage } from 'Arbitrage';
 import * as CreepMixin from 'CreepMixin';
 import * as ExpansionPlanner from 'ExpansionPlanner';
 import * as MissionLoader from 'MissionLoader';
@@ -35,7 +35,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
     MissionLoader.loadAll();
 
     // Initialize units
-    const units = [];
+    const units: any[] = [];
     for (const name in Game.creeps) {
       const creep = Game.creeps[name];
 
@@ -72,7 +72,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
       }
     }
 
-    const structures = [];
+    const structures: any[] = [];
     for (const name in Game.structures) {
       const structure = Game.structures[name];
       if (structure.structureType === STRUCTURE_TOWER) {

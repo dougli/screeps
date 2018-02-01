@@ -9,7 +9,13 @@
     "no-console": [false],
     "no-namespace": [true, "allow-declarations"],
     "quotemark": [true, "single"],
-    "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
+    "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
+    "typedef": [
+      true,
+      "call-signature",
+      "parameter",
+      "member-variable-declaration"
+    ],
     "variable-name": [
       true,
       "ban-keywords",
