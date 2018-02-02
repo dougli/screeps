@@ -103,4 +103,4 @@ class RemoteMiningMission extends Mission {
   }
 }
 
-module.exports = RemoteMiningMission;
+exports.RemoteMiningMission = RemoteMiningMission;

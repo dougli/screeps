@@ -2,7 +2,7 @@ import { Arbitrage } from 'Arbitrage';
 import * as CreepMixin from 'CreepMixin';
 import * as ExpansionPlanner from 'ExpansionPlanner';
 import * as MissionLoader from 'MissionLoader';
-import * as Overseer from 'Overseer';
+import { Overseer } from 'Overseer';
 import * as Profiler from 'Profiler';
 
 import { Builder } from 'role.Builder';

@@ -30,7 +30,9 @@ export default {
       namedExports: {
         'src/ExpansionPlanner.js': ['run'],
         'src/MissionLoader.js': ['loadAll'],
-        'src/Overseer.js': ['run'],
+        'src/Sources.js': ['getMemoryFor'],
+        'src/Controllers.js': ['getOwner'],
+        'src/Rooms.js': ['getDefenseMission', 'getScoutMissionFrom'],
       },
     }),
     typescript({tsconfig: "./tsconfig.json"}),

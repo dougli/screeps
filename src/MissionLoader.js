@@ -1,6 +1,6 @@
-const DefenseMission = require('DefenseMission');
-const RemoteMiningMission = require('RemoteMiningMission');
-const ScoutMission = require('ScoutMission');
+const DefenseMission = require('DefenseMission').DefenseMission;
+const RemoteMiningMission = require('RemoteMiningMission').RemoteMiningMission;
+const ScoutMission = require('ScoutMission').ScoutMission;
 
 class MissionLoader {
   static loadAll() {

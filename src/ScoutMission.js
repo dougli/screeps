@@ -124,4 +124,4 @@ class ScoutMission extends Mission {
   }
 }
 
-module.exports = ScoutMission;
+exports.ScoutMission = ScoutMission;

@@ -100,4 +100,4 @@ class DefenseMission extends Mission {
   }
 }
 
-module.exports = DefenseMission;
+exports.DefenseMission = DefenseMission;
