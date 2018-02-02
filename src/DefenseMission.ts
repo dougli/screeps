@@ -1,5 +1,5 @@
-const Mission = require('Mission');
-const Rooms = require('Rooms');
+import { Mission } from 'Mission';
+import * as Rooms from 'Rooms';
 
 const SUCCESS_TIME = 100;
 
@@ -15,33 +15,35 @@ const BOOSTS = {
   // Ranged attack
   [RESOURCE_KEANIUM_OXIDE]: 2,
   [RESOURCE_KEANIUM_ALKALIDE]: 3,
-  [RESOURCE_CATALYZED_KEANIUM_ALKALIDE]: 4
+  [RESOURCE_CATALYZED_KEANIUM_ALKALIDE]: 4,
+};
+
+declare global {
+  interface Room {
+    defenseMission: DefenseMission | undefined;
+  }
 }
 
-class DefenseMission extends Mission {
-  static create(roomName) {
+export class DefenseMission extends Mission {
+  public static create(roomName: string): DefenseMission {
     return new DefenseMission(
       null,
-      {type: 'defense', room: roomName, lastHostileTime: Game.time}
+      {type: 'defense', room: roomName, lastHostileTime: Game.time},
     );
   }
 
-  static deserialize(id, memory) {
-    return new DefenseMission(id, memory);
-  }
-
-  constructor(id, memory) {
+  constructor(id: string | null, memory: object) {
     super(id, memory);
     if (Game.rooms[this.memory.room]) {
       Game.rooms[this.memory.room].defenseMission = this;
     }
   }
 
-  get name() {
+  public get name(): string {
     return 'Defend ' + this.memory.room;
   }
 
-  run() {
+  public run(): void {
     const room = Game.rooms[this.memory.room];
     if (!room) {
       this.concludeFailedMission();
@@ -64,7 +66,7 @@ class DefenseMission extends Mission {
     const healPower = {};
     for (const hostile of hostiles) {
       const maxHeal = hostiles.reduce((accum, other) => {
-        return accum + this._getHealCreepFor(hostile, other);
+        return accum + this.getHealCreepFor(hostile, other);
       }, 0);
 
       const towers = Rooms.getFriendlyTowers(room);
@@ -74,13 +76,13 @@ class DefenseMission extends Mission {
 
       // Attack if our damage overpowers a creep's total heal
       if (maxDamage > maxHeal) {
-        towers.forEach(tower => tower.attack(hostile));
+        towers.forEach((tower) => tower.attack(hostile));
         return;
       }
     }
   }
 
-  _getHealCreepFor(main, other) {
+  private getHealCreepFor(main: Creep, other: Creep): number {
     let power = 0;
     const range = main.pos.getRangeTo(other);
 
@@ -95,9 +97,7 @@ class DefenseMission extends Mission {
     return other.body.reduce((accum, part) => {
       return (part.hits <= 0 || part.type !== HEAL)
         ? accum
-        : accum + power * (BOOSTS[part.boost] || 1);
+        : accum + power * (part.boost ? BOOSTS[part.boost] : 1);
     }, 0);
   }
 }
-
-exports.DefenseMission = DefenseMission;

@@ -17,16 +17,9 @@ interface RoomMemory {
   [name: string]: any;
 }
 
-interface Game {
-  missions: Mission[];
-}
-
-interface Mission {
-  run: () => void;
-}
-
 interface BaseUnit {
   isDyingSoon: () => boolean;
   getReplenishedBy: () => BaseUnit;
+  hasTask: () => boolean;
   creep: Creep;
 }

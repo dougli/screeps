@@ -1,7 +1,7 @@
 import { Arbitrage } from 'Arbitrage';
 import * as CreepMixin from 'CreepMixin';
 import * as ExpansionPlanner from 'ExpansionPlanner';
-import * as MissionLoader from 'MissionLoader';
+import { MissionLoader } from 'MissionLoader';
 import { Overseer } from 'Overseer';
 import * as Profiler from 'Profiler';
 
@@ -21,8 +21,9 @@ CreepMixin.run();
 
 Profiler.enable();
 
-// When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
-// This utility uses source maps to get the line numbers and file names of the original, TS source code
+// When compiling TS to JS and bundling with rollup, the line numbers and file
+// names in error messages change This utility uses source maps to get the line
+// numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
   Profiler.wrap(() => {
     // Clean up old memory

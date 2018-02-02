@@ -1,29 +1,23 @@
-const Mission = require('Mission');
+import { Mission } from 'Mission';
+import { Claimer } from 'role.Claimer';
+import { Mule } from 'role.Mule';
 
 const RESERVE_NEEDED = 3000;
 const ME = 'dougli';
 
-class RemoteMiningMission extends Mission {
-  static create(base, roomName) {
+export class RemoteMiningMission extends Mission {
+  public static create(base: string, roomName: string): RemoteMiningMission {
     return new RemoteMiningMission(
       null,
-      {type: 'remote_mine', base, room: roomName}
+      {type: 'remote_mine', base, room: roomName},
     );
   }
 
-  static deserialize(id, memory) {
-    return new RemoteMiningMission(id, memory);
-  }
-
-  constructor(id, memory) {
-    super(id, memory);
-  }
-
-  get name() {
+  get name(): string {
     return 'Remotely mine ' + this.memory.room;
   }
 
-  run() {
+  public run(): void {
     if (!Game.rooms[this.memory.base]) {
       this.concludeFailedMission();
       return;
@@ -38,21 +32,17 @@ class RemoteMiningMission extends Mission {
     this._reserve();
     const memory = Memory.rooms[this.memory.room];
     for (const id in memory.sources) {
-      this._mine(id, memory.sources[id]);
+      this._mine(id);
     }
   }
 
-  _defend() {
+  private _defend(): void {
     this.requisitionCreep('defender', 'defender', {
       defendTarget: this.memory.room,
     });
   }
 
-  _reserve() {
-    if (this.creeps.claimer && !this.creeps.claimer.getReserveTarget()) {
-      this.creeps.claimer.setReserveTarget(this.memory.room);
-    }
-
+  private _reserve(): void {
     let reserveNeeded = false;
     const room = Game.rooms[this.memory.room];
     const controller = room && room.controller;
@@ -70,27 +60,30 @@ class RemoteMiningMission extends Mission {
     }
 
     if (reserveNeeded) {
-      this.requisitionCreep('claimer', 'claimer');
+      const claimer = this.requisitionCreep<Claimer>('claimer', 'claimer');
+      if (claimer) {
+        claimer.setReserveTarget(this.memory.room);
+      }
     }
   }
 
-  _mine(sourceID, memory) {
+  private _mine(sourceID: string): void {
     const minerID = 'miner_' + sourceID;
     const muleID = 'mule_' + sourceID;
     this.requisitionCreep(
       minerID,
       'miner',
       {harvestTarget: sourceID, harvestRoom: this.memory.room},
-      true
+      true,
     );
 
     let haulSpeedRemaining = 10;
     let muleNum = 1;
     while (haulSpeedRemaining > 1) {
-      let mule = this.requisitionCreep(muleID + '_' + muleNum, 'mule', {
-        haulTarget: sourceID,
+      const mule = this.requisitionCreep<Mule>(muleID + '_' + muleNum, 'mule', {
+        base: this.memory.base,
         haulRoom: this.memory.room,
-        base: this.memory.base
+        haulTarget: sourceID,
       }, true);
 
       if (!mule) {
@@ -102,5 +95,3 @@ class RemoteMiningMission extends Mission {
     }
   }
 }
-
-exports.RemoteMiningMission = RemoteMiningMission;

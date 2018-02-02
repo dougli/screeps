@@ -1,35 +1,38 @@
-const Mission = require('Mission');
+import { Mission } from 'Mission';
+import { Scout } from 'role.Scout';
 
 const EXPLORE_PING = 5000;
 const HOSTILE_PING = 5000;
 const SCOUT_RANGE = 3;
 
-class ScoutMission extends Mission {
-  static shouldScout(fromBase) {
+declare global {
+  interface Room {
+    scoutMission: ScoutMission | undefined;
+  }
+}
+
+export class ScoutMission extends Mission {
+  public static shouldScout(fromBase: string): boolean {
     return !!ScoutMission.findScoutTarget(fromBase, fromBase);
   }
 
-  static create(base) {
+  public static create(base: string): ScoutMission {
     return new ScoutMission(null, {type: 'scout', base});
   }
 
-  static deserialize(id, memory) {
-    return new ScoutMission(id, memory);
-  }
-
-  constructor(id, memory) {
+  constructor(id: string | null, memory: object) {
     super(id, memory);
     if (Game.rooms[this.memory.base]) {
       Game.rooms[this.memory.base].scoutMission = this;
     }
   }
 
-  get name() {
+  public get name(): string {
     return 'Scouting from ' + this.memory.base;
   }
 
-  run() {
-    const scout = this.requisitionCreep('scout', 'scout');
+  public run(): void {
+    const scout = this.requisitionCreep<Scout>('scout', 'scout');
     if (!scout || scout.hasTask()) {
       return;
     }
@@ -45,7 +48,7 @@ class ScoutMission extends Mission {
     scout.setTarget(newTarget);
   }
 
-  static findScoutTarget(base, fromRoom) {
+  private static findScoutTarget(base: string, fromRoom: string): string | null {
     // Find a target for the scout
     const targets = ScoutMission.getRoomsInRange(base, SCOUT_RANGE);
     const possibleTargets = Object.assign({}, targets);
@@ -66,36 +69,42 @@ class ScoutMission extends Mission {
     }
 
     // Otherwise, pick a target near the scout
-    let closest = null;
+    let closest: string | null = null;
     let minDistance = Number.POSITIVE_INFINITY;
     for (const target in possibleTargets) {
-      const distance = Game.map.findRoute(fromRoom, target, (room, from) => {
-        if (!(room in targets)) {
-          return Number.POSITIVE_INFINITY;
-        } else if (Memory.rooms[room] && Memory.rooms[room].hostile) {
-          return (Memory.rooms[room].lastSeen + HOSTILE_PING < Game.time)
-            ? 1
-            : Number.POSITIVE_INFINITY;
-        }
-        return 1;
-      }).length;
-      if (distance !== ERR_NO_PATH && distance < minDistance) {
+      const distance = Game.map.findRoute(fromRoom, target, {
+        routeCallback: (room, from) => {
+          if (!(room in targets)) {
+            return Number.POSITIVE_INFINITY;
+          } else if (Memory.rooms[room] && Memory.rooms[room].hostile) {
+            return (Memory.rooms[room].lastSeen + HOSTILE_PING < Game.time)
+              ? 1
+              : Number.POSITIVE_INFINITY;
+          }
+          return 1;
+        },
+      });
+
+      if (distance !== ERR_NO_PATH && distance.length < minDistance) {
         closest = target;
-        minDistance = distance;
+        minDistance = distance.length;
       }
     }
 
     return closest;
   }
 
-  static getRoomsInRange(origin, range) {
+  private static getRoomsInRange(
+    origin: string,
+    range: number,
+  ): {[roomName: string]: number} {
     const result = {};
     let queue = [origin];
 
     for (let ii = 0; ii <= range; ii++) {
-      let nextQueue = [];
+      const nextQueue: string[] = [];
 
-      queue.forEach(room => {
+      queue.forEach((room) => {
         // Don't walk in impassable or hostile rooms
         if (!Game.map.isRoomAvailable(room)) {
           return;
@@ -105,7 +114,6 @@ class ScoutMission extends Mission {
             memory.lastSeen + HOSTILE_PING >= Game.time) {
           return;
         }
-
 
         result[room] = ii;
 
@@ -123,5 +131,3 @@ class ScoutMission extends Mission {
     return result;
   }
 }
-
-exports.ScoutMission = ScoutMission;

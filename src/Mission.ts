@@ -1,6 +1,12 @@
 let REQUESTED_CREEPS: MissionRequisition[] = [];
 let LastTick = 0;
 
+declare global {
+  interface Game {
+    missions: {[id: string]: Mission};
+  }
+}
+
 interface MissionRequisition {
   mission: Mission;
   key: string;
@@ -8,7 +14,7 @@ interface MissionRequisition {
   memory: {};
 }
 
-class Mission {
+export abstract class Mission {
   private id: string;
   private creeps: {
     [key: string]: BaseUnit;
@@ -29,7 +35,7 @@ class Mission {
     Game.missions[this.id] = this;
   }
 
-  get memory(): {} {
+  get memory(): {[key: string]: any} {
     if (!Memory.missions) {
       Memory.missions = {};
     }
@@ -39,7 +45,7 @@ class Mission {
     return Memory.missions[this.id];
   }
 
-  set memory(value: {}) {
+  set memory(value: {[key: string]: any}) {
     if (!Memory.missions) {
       Memory.missions = {};
     }
@@ -50,7 +56,9 @@ class Mission {
     return 'Mission ' + this.id;
   }
 
-  private concludeSuccessfulMission(): void {
+  public abstract run(): void;
+
+  protected concludeSuccessfulMission(): void {
     const message = 'Mission: ' + this.name + ' was successful!';
     Game.notify(message, 1440);
     console.log(message);
@@ -58,7 +66,7 @@ class Mission {
     delete Game.missions[this.id];
   }
 
-  private concludeFailedMission(): void {
+  protected concludeFailedMission(): void {
     const message = 'Mission: ' + this.name + ' failed.';
     Game.notify(message);
     console.log(message);
@@ -66,18 +74,20 @@ class Mission {
     delete Game.missions[this.id];
   }
 
-  private requisitionCreep(
+  protected requisitionCreep<T extends BaseUnit>(
     key: string,
     type: string,
-    memory: {[key: string]: any},
-    replenish: boolean,
-  ): BaseUnit | null {
+    memory?: {[key: string]: any},
+    replenish?: boolean,
+  ): T | null {
     const creep = this.creeps[key] || null;
 
     if (Game.time !== LastTick) {
       REQUESTED_CREEPS = [];
       LastTick = Game.time;
     }
+
+    memory = memory || {};
 
     if (!creep ||
         (replenish && creep.isDyingSoon() && !creep.getReplenishedBy())) {
@@ -88,7 +98,7 @@ class Mission {
       REQUESTED_CREEPS.push({mission: this, key, type, memory});
     }
 
-    return creep;
+    return creep as T;
   }
 
   public provideCreep(key: string, creep: BaseUnit): void {
@@ -96,4 +106,4 @@ class Mission {
   }
 }
 
-export default Mission;
+export default Mission; // TODO: Kill. Here only for backwards compatibility

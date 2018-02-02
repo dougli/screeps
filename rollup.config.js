@@ -29,10 +29,13 @@ export default {
       include: ['node_modules/**', 'src/**'],
       namedExports: {
         'src/ExpansionPlanner.js': ['run'],
-        'src/MissionLoader.js': ['loadAll'],
         'src/Sources.js': ['getMemoryFor'],
         'src/Controllers.js': ['getOwner'],
-        'src/Rooms.js': ['getDefenseMission', 'getScoutMissionFrom'],
+        'src/Rooms.js': [
+          'getDefenseMission',
+          'getFriendlyTowers',
+          'getScoutMissionFrom',
+        ],
       },
     }),
     typescript({tsconfig: "./tsconfig.json"}),
