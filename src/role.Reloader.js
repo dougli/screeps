@@ -3,7 +3,7 @@ const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
 const Profiler = require('Profiler');
 const Rooms = require('Rooms');
-const Task = require('Task');
+const Task = require('Task').Task;
 
 class Reloader extends BaseUnit {
   static getIdealBuild(room) {

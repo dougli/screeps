@@ -1,7 +1,7 @@
 const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
 const Sources = require('Sources');
-const Task = require('Task');
+const Task = require('Task').Task;
 const Profiler = require('Profiler');
 
 class Miner extends BaseUnit {

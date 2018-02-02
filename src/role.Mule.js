@@ -1,6 +1,6 @@
 const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
-const Task = require('Task');
+const Task = require('Task').Task;
 const Rooms = require('Rooms');
 const Profiler = require('Profiler');
 const Paths = require('Paths');

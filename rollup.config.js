@@ -31,6 +31,7 @@ export default {
         'src/ExpansionPlanner.js': ['run'],
         'src/Sources.js': ['getMemoryFor'],
         'src/Controllers.js': ['getOwner'],
+        'src/Paths.js': ['search', 'serialize'],
         'src/Rooms.js': [
           'getDefenseMission',
           'getFriendlyTowers',

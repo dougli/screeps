@@ -1,7 +1,7 @@
 const BaseUnit = require('BaseUnit');
 const BuildCosts = require('BuildCosts');
 const Rooms = require('Rooms');
-const Task = require('Task');
+const Task = require('Task').Task;
 
 class Repairer extends BaseUnit {
   static getIdealBuild(capacity) {

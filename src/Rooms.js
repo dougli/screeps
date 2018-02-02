@@ -1,4 +1,4 @@
-const Task = require('Task');
+const Task = require('Task').Task;
 const Controllers = require('Controllers');
 const BaseLayout = require('BaseLayout');
 const Walls = require('Walls');

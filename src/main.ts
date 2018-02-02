@@ -18,7 +18,6 @@ import { Upgrader } from 'role.Upgrader';
 import { ErrorMapper } from 'utils/ErrorMapper';
 
 CreepMixin.run();
-
 Profiler.enable();
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file

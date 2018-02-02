@@ -1,5 +1,5 @@
 const Sources = require('Sources');
-const Task = require('Task');
+const Task = require('Task').Task;
 const Rooms = require('Rooms');
 const Walls = require('Walls');
 

@@ -71,4 +71,4 @@ Object.assign(Task, {
   SCOUT: 'scout',
 });
 
-module.exports = Task;
+exports.Task = Task;

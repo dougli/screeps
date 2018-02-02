@@ -1,5 +1,5 @@
 const BaseUnit = require('BaseUnit');
-const Task = require('Task');
+const Task = require('Task').Task;
 const Profiler = require('Profiler');
 
 const PATH_REUSE = 20;
