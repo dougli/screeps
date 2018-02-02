@@ -134,7 +134,7 @@ function moveToTarget(creep: Creep, target: MoveTarget): CreepMoveReturnCode {
     // Otherwise, increment our move counters and check we are
     mem._path.stuck = 0;
     mem._path.lastPos = {x: pos.x, y: pos.y, room: pos.roomName};
-    recalculate = (++mem._path.index >= mem.path.length);
+    recalculate = (++mem._path.index >= mem._path.path.length);
   }
 
   if (!mem._path || recalculate) {
