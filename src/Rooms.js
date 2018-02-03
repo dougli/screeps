@@ -8,7 +8,7 @@ const MIN_STORAGE_ENERGY = 1000;
 const TARGET_STORAGE_ENERGY = 50000;
 const TRADE_ENERGY = 100000;
 const TERMINAL_ENERGY = 10000;
-const MIN_WALL_REPAIR = 5000;
+const MIN_WALL_REPAIR = 20000;
 
 class Rooms {
   static getBuilderFor(room) {

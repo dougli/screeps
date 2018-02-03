@@ -1,4 +1,4 @@
-import * as Paths from 'Paths';
+import { Paths } from 'Paths';
 import * as Profiler from 'Profiler';
 import { Task } from 'Task';
 
