@@ -22,3 +22,9 @@ interface Mission {
 
 type DONE = 1;
 declare const DONE = 1;
+
+interface BuildPlan {
+  x: number;
+  y: number;
+  type: BuildableStructureConstant;
+}

@@ -1,11 +1,5 @@
 import * as Profiler from 'Profiler';
 
-interface BuildPlan {
-  x: number;
-  y: number;
-  type: BuildableStructureConstant;
-}
-
 const BUILD_PRIORITY = {
   [STRUCTURE_TOWER]: 15,
   [STRUCTURE_SPAWN]: 14,

@@ -1,7 +1,7 @@
 import * as Rooms from 'Rooms';
 import * as Sources from 'Sources';
 import { Task } from 'Task';
-import * as Walls from 'Walls';
+import { Walls } from 'Walls';
 
 const PATH_REUSE = 10;
 
