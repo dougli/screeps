@@ -1,4 +1,10 @@
-const Profiler = require('Profiler');
+import * as Profiler from 'Profiler';
+
+interface BuildPlan {
+  x: number;
+  y: number;
+  type: BuildableStructureConstant;
+}
 
 const BUILD_PRIORITY = {
   [STRUCTURE_TOWER]: 15,
@@ -14,7 +20,10 @@ const BUILD_PRIORITY = {
   [STRUCTURE_POWER_SPAWN]: 3,
 };
 
-function s(structureType, roomLevel) {
+function s(
+  structureType: BuildableStructureConstant,
+  roomLevel: number,
+): {s: BuildableStructureConstant, l: number} {
   return {s: structureType, l: roomLevel};
 }
 
@@ -32,15 +41,15 @@ const BASE_LAYOUT = [
 /* 10 */  [s(STRUCTURE_ROAD, 4), s(STRUCTURE_EXTENSION, 3), s(STRUCTURE_ROAD, 3), s(STRUCTURE_EXTENSION, 2), s(STRUCTURE_EXTENSION, 2), s(STRUCTURE_EXTENSION, 2), s(STRUCTURE_ROAD, 3), s(STRUCTURE_EXTENSION, 4), s(STRUCTURE_EXTENSION, 5), s(STRUCTURE_EXTENSION, 5), s(STRUCTURE_ROAD, 5), s(STRUCTURE_EXTENSION, 5), s(STRUCTURE_ROAD, 5)],
 /* 11 */  [s(STRUCTURE_ROAD, 4), s(STRUCTURE_EXTENSION, 4), s(STRUCTURE_EXTENSION, 4), s(STRUCTURE_ROAD, 3), s(STRUCTURE_EXTENSION, 3), s(STRUCTURE_ROAD, 3), s(STRUCTURE_EXTENSION, 4), s(STRUCTURE_ROAD, 5), s(STRUCTURE_EXTENSION, 5), s(STRUCTURE_ROAD, 5), s(STRUCTURE_EXTENSION, 5), s(STRUCTURE_EXTENSION, 6), s(STRUCTURE_ROAD, 5)],
 /* 12 */  [s(STRUCTURE_ROAD, 4), null, s(STRUCTURE_EXTENSION, 4), s(STRUCTURE_EXTENSION, 4), s(STRUCTURE_ROAD, 3), s(STRUCTURE_EXTENSION, 4), s(STRUCTURE_EXTENSION, 4), s(STRUCTURE_EXTENSION, 5), s(STRUCTURE_ROAD, 5), s(STRUCTURE_EXTENSION, 5), s(STRUCTURE_EXTENSION, 6), null, s(STRUCTURE_ROAD, 5)],
-/* 13 */  [null, s(STRUCTURE_ROAD, 4), s(STRUCTURE_ROAD, 4), s(STRUCTURE_ROAD, 4), s(STRUCTURE_EXTENSION, 4), s(STRUCTURE_ROAD, 4), s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 5), s(STRUCTURE_EXTENSION, 5), s(STRUCTURE_ROAD, 5), s(STRUCTURE_ROAD, 5), s(STRUCTURE_ROAD, 5)]
+/* 13 */  [null, s(STRUCTURE_ROAD, 4), s(STRUCTURE_ROAD, 4), s(STRUCTURE_ROAD, 4), s(STRUCTURE_EXTENSION, 4), s(STRUCTURE_ROAD, 4), s(STRUCTURE_ROAD, 8), s(STRUCTURE_ROAD, 5), s(STRUCTURE_EXTENSION, 5), s(STRUCTURE_ROAD, 5), s(STRUCTURE_ROAD, 5), s(STRUCTURE_ROAD, 5)],
 ];
 
 class BaseLayout {
-  static getPriorityMap() {
+  public static getPriorityMap(): {[key in BuildableStructureConstant]?: number} {
     return BUILD_PRIORITY;
   }
 
-  static getConstructionPlans(room) {
+  public static getConstructionPlans(room: Room): BuildPlan[] {
     if (!room || !room.controller || !room.controller.my) {
       return [];
     }
@@ -52,10 +61,10 @@ class BaseLayout {
     }
 
     const structures = room.lookForAtArea(
-      LOOK_STRUCTURES, pos.y, pos.x, pos.y + SIZE - 1, pos.x + SIZE - 1
+      LOOK_STRUCTURES, pos.y, pos.x, pos.y + SIZE - 1, pos.x + SIZE - 1,
     );
     const sites = room.lookForAtArea(
-      LOOK_CONSTRUCTION_SITES, pos.y, pos.x, pos.y + SIZE - 1, pos.x + SIZE - 1
+      LOOK_CONSTRUCTION_SITES, pos.y, pos.x, pos.y + SIZE - 1, pos.x + SIZE - 1,
     );
 
     return BaseLayout.getBasePlans(pos.x, pos.y, level, true)
@@ -66,16 +75,25 @@ class BaseLayout {
       }).sort((a, b) => BUILD_PRIORITY[b.type] - BUILD_PRIORITY[a.type]);
   }
 
-  static getBaseLink(room) {
+  public static getBaseLink(room: Room): StructureLink | null {
     const base = BaseLayout.getBasePos(room);
+    if (!base) {
+      return null;
+    }
+
     const linkPos = new RoomPosition(base.x + 4, base.y + 6, room.name);
-    return linkPos.lookFor(LOOK_STRUCTURES)
-      .filter(s => s.my && s.structureType === STRUCTURE_LINK)[0];
+    for (const st of linkPos.lookFor(LOOK_STRUCTURES)) {
+      if (st.structureType === STRUCTURE_LINK && (st as StructureLink).my) {
+        return st as StructureLink;
+      }
+    }
+    return null;
   }
 
-  static getBasePos(room) {
-    if (room.memory.basePos) {
-      return room.memory.basePos;
+  public static getBasePos(room: Room): RoomPosition | null {
+    let mem = room.memory.basePos;
+    if (mem) {
+      return new RoomPosition(mem.x, mem.y, room.name);
     }
 
     const terrain = room.lookForAtArea(LOOK_TERRAIN, 0, 0, 49, 49);
@@ -84,11 +102,11 @@ class BaseLayout {
     if (spawns.length === 1) {
       const spawnPos = spawns[0].pos;
       if (BaseLayout._canBaseFit(terrain, spawnPos.x - 5, spawnPos.y - 7)) {
-        room.memory.basePos = {x: spawnPos.x - 5, y: spawnPos.y - 7};
-        return room.memory.basePos;
+        mem = room.memory.basePos = {x: spawnPos.x - 5, y: spawnPos.y - 7};
+        return new RoomPosition(mem.x, mem.y, room.name);
       } else {
         room.memory.basePos = null;
-        return room.memory.basePos;
+        return null;
       }
     }
 
@@ -96,7 +114,7 @@ class BaseLayout {
     return null;
   }
 
-  static getBaseCenter(room) {
+  public static getBaseCenter(room: Room): RoomPosition | null {
     const pos = BaseLayout.getBasePos(room);
     if (pos) {
       return room.getPositionAt(pos.x + (SIZE - 1) / 2, pos.y + (SIZE - 1) / 2);
@@ -104,7 +122,11 @@ class BaseLayout {
     return null;
   }
 
-  static _canBaseFit(terrain, x, y) {
+  private static _canBaseFit(
+    terrain: LookForAtAreaResultMatrix<Terrain, 'terrain'>,
+    x: number,
+    y: number,
+  ): boolean {
     // The base musn't be touching the edges of the map
     if (x <= 0 || y <= 0 || x + SIZE >= 50 || y + SIZE >= 50) {
       return false;
@@ -112,7 +134,7 @@ class BaseLayout {
 
     for (let ii = 0; ii < SIZE; ii++) {
       for (let jj = 0; jj < SIZE; jj++) {
-        if (terrain[y + ii][x + jj][0] === 'wall') {
+        if (terrain[y + ii][x + jj][0] as any === 'wall') {
           return false;
         }
       }
@@ -125,7 +147,8 @@ class BaseLayout {
    * Used for debugging & testing, spits out what structures to build at each
    * level
    */
-  static getBuildingsByLevel() {
+  public static getBuildingsByLevel(
+  ): Array<{[type in BuildableStructureConstant]?: number}> {
     const levels = [{}, {}, {}, {}, {}, {}, {}, {}];
 
     for (const arr of BASE_LAYOUT) {
@@ -144,10 +167,15 @@ class BaseLayout {
    * Given an RCL and xy-coordinates, returns a list of plans for where
    * structures should be.
    */
-  static getBasePlans(x, y, level, includePrevious) {
-    const plans = [];
-    for (let [iy, arr] of BASE_LAYOUT.entries()) {
-      for (let [ix, struct] of arr.entries()) {
+  public static getBasePlans(
+    x: number,
+    y: number,
+    level: number,
+    includePrevious: boolean,
+  ): BuildPlan[] {
+    const plans: BuildPlan[] = [];
+    for (const [iy, arr] of BASE_LAYOUT.entries()) {
+      for (const [ix, struct] of arr.entries()) {
         if (!struct) {
           continue;
         }
@@ -166,7 +194,7 @@ class BaseLayout {
    * Given a room, returns an array possibly containing 'NE', 'NW', 'SE', 'SW'
    * representing portions of the base are built and require a reloader
    */
-  static getActiveQuadrants(room) {
+  public static getActiveQuadrants(room: Room): string[] {
     if (!room.controller || !room.controller.my) {
       return [];
     }
@@ -186,7 +214,10 @@ class BaseLayout {
     return [];
   }
 
-  static getBenchPosition(room, quadrant) {
+  public static getBenchPosition(
+    room: Room,
+    quadrant: string,
+  ): RoomPosition | null {
     const center = BaseLayout.getBaseCenter(room);
     if (!center) {
       return null;
@@ -208,28 +239,29 @@ class BaseLayout {
    * Given a room and quadrant, returns all the energy bearing structures in
    * that quadrant that require reloading.
    */
-  static getQuadrantEnergyStructures(room, quadrant) {
+  public static getQuadrantEnergyStructures(
+    room: Room,
+    quadrant: string,
+  ): Array<Structure<StructureConstant>> {
     const pos = BaseLayout.getBasePos(room);
     if (!pos) {
       return [];
     }
 
     const qSize = Math.floor((SIZE - 1) / 2);
-    const x = pos.x + ((quadrant == 'NE' || quadrant == 'SE') ? qSize : 0);
-    const y = pos.y + ((quadrant == 'SW' || quadrant == 'SE') ? qSize : 0);
+    const x = pos.x + ((quadrant === 'NE' || quadrant === 'SE') ? qSize : 0);
+    const y = pos.y + ((quadrant === 'SW' || quadrant === 'SE') ? qSize : 0);
 
     const extraLooks = {
       NE: [{x: 5, y: 3}, {x: 9, y: 7}],
       NW: [/*{x: 7, y: 3},*/ {x: 3, y: 7}, {x: 9, y: 7}],
       SE: [{x: 5, y: 9}, {x: 9, y: 5}],
-      SW: [/*{x: 7, y: 9},*/ {x: 3, y: 5}, {x: 9, y: 5}]
+      SW: [/*{x: 7, y: 9},*/ {x: 3, y: 5}, {x: 9, y: 5}],
     };
 
     // Note: find() is faster than lookForAtArea() here
-    const result = room.find(
-      FIND_MY_STRUCTURES
-    ).filter((structure) => {
-      const pos = structure.pos;
+    const result = room.find(FIND_MY_STRUCTURES).filter((structure) => {
+      const sPos = structure.pos;
       switch (structure.structureType) {
       case STRUCTURE_EXTENSION:
       case STRUCTURE_SPAWN:
@@ -242,23 +274,29 @@ class BaseLayout {
         return false;
       }
 
-      // return x <= pos.x && pos.x <= x + qSize &&
-      //   y <= pos.y && pos.y <= y + qSize;
-      return x <= pos.x && pos.x <= x + SIZE &&
-        y <= pos.y && pos.y <= y + qSize;
+      return x <= sPos.x && sPos.x <= x + SIZE &&
+        y <= sPos.y && sPos.y <= y + qSize;
     });
 
     for (const extra of extraLooks[quadrant]) {
-      const struct = room.lookForAt(
-        LOOK_STRUCTURES, pos.x + extra.x, pos.y + extra.y
+      const struct: any = room.lookForAt(
+        LOOK_STRUCTURES, pos.x + extra.x, pos.y + extra.y,
       )[0];
-      struct && struct.energyCapacity > 0 && result.push(struct);
+      if (struct && struct.energyCapacity > 0) {
+        result.push(struct);
+      }
     }
 
     return result;
   }
 
-  static drawBase(x, y, level, includePrevious, roomName) {
+  public static drawBase(
+    x: number,
+    y: number,
+    level: number,
+    includePrevious: boolean,
+    roomName: string,
+  ): void {
     // Test by using RoomVisual
     // First, get all the structures to place at that level
     const sites = BaseLayout.getBasePlans(x, y, level, includePrevious);
@@ -270,7 +308,7 @@ class BaseLayout {
       y - 0.5,
       SIZE,
       SIZE,
-      {fill: null, stroke: '#ffffff'}
+      {fill: undefined, stroke: '#ffffff'},
     );
 
     const roads = {};
@@ -324,4 +362,5 @@ class BaseLayout {
 
 Profiler.registerClass(BaseLayout, 'BaseLayout');
 
-module.exports = BaseLayout;
+export { BaseLayout };
+export default BaseLayout;
