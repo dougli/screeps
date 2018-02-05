@@ -152,6 +152,7 @@ declare global {
       target: RoomObject | RoomPosition,
     ) => CreepMoveReturnCode | ERR_INVALID_TARGET;
     save: () => void;
+    tasks: Task[];
   }
 
   interface CreepMemory {
