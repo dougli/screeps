@@ -75,10 +75,10 @@ class Reloader extends BaseUnit {
     const result = this._doTask();
     if (result == OK) {
       return;
-    } else if (result == 'NEED_ENERGY') {
+    } else if (result == ERR_NOT_ENOUGH_RESOURCES) {
       this.setTask(new Task(Task.PICKUP, storage, creep.carryCapacity));
       creep.moveToExperimental(storage);
-    } else if (result == 'DONE') {
+    } else if (result == DONE) {
       const reloadTasks = Rooms.getReloadTasks(this, creep.room);
       if (prevTask.type !== Task.TRANSFER) {
         this.setTask(reloadTasks[0]);

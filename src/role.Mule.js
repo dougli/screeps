@@ -102,10 +102,10 @@ class Mule extends BaseUnit {
     const result = this._doTask();
     if (result == OK) {
       return;
-    } else if (result == 'NEED_ENERGY') {
+    } else if (result == ERR_NOT_ENOUGH_RESOURCES) {
       this._setPickupTask();
       this._doTask();
-    } else if (result == 'DONE') {
+    } else if (result == DONE) {
       this._setDropoffTask(curr);
       if (this.getCurrentTask()) {
         this.creep.moveToExperimental(this.getCurrentTask().target);

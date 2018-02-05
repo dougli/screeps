@@ -36,10 +36,10 @@ class Builder extends BaseUnit {
     const result = this._doTask();
     if (result === OK) {
       return;
-    } else if (result === 'NEED_ENERGY') {
+    } else if (result === ERR_NOT_ENOUGH_RESOURCES) {
       // Just wait for a mule if we need energy
       return;
-    } else if (result === 'DONE') {
+    } else if (result === DONE) {
       if (!this.hasTask()) {
         // Find another build task -- we don't take the first task as it's the
         // one that was completed

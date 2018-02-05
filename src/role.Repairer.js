@@ -26,11 +26,11 @@ class Repairer extends BaseUnit {
     const result = this._doTask();
     if (result === OK) {
       return;
-    } else if (result === 'NEED_ENERGY') {
+    } else if (result === ERR_NOT_ENOUGH_RESOURCES) {
       if (room.storage) {
         this.setTask(new Task(Task.PICKUP, room.storage, 10000));
       }
-    } else if (result === 'DONE') {
+    } else if (result === DONE) {
       if (!this.hasTask()) {
         this._setNextTask();
       }

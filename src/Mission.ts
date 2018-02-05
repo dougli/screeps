@@ -16,7 +16,7 @@ interface MissionRequisition {
 
 export abstract class Mission {
   private id: string;
-  private creeps: {
+  private units: {
     [key: string]: BaseUnit;
   };
 
@@ -31,7 +31,7 @@ export abstract class Mission {
   constructor(id: string | null, memory: {}) {
     this.id = id || Math.random().toString(16).substr(2);
     this.memory = memory || {};
-    this.creeps = {};
+    this.units = {};
     Game.missions[this.id] = this;
   }
 
@@ -80,7 +80,7 @@ export abstract class Mission {
     memory?: {[key: string]: any},
     replenish?: boolean,
   ): T | null {
-    const creep = this.creeps[key] || null;
+    const unit = this.units[key] || null;
 
     if (Game.time !== LastTick) {
       REQUESTED_CREEPS = [];
@@ -89,20 +89,20 @@ export abstract class Mission {
 
     memory = memory || {};
 
-    if (!creep ||
-        (replenish && creep.isDyingSoon() && !creep.getReplenishedBy())) {
-      if (replenish && creep) {
-        memory.replenish = creep.creep.id;
+    if (!unit ||
+        (replenish && unit.isDyingSoon() && !unit.getReplenishedBy())) {
+      if (replenish && unit) {
+        memory.replenish = unit.id;
       }
 
       REQUESTED_CREEPS.push({mission: this, key, type, memory});
     }
 
-    return creep as T;
+    return unit as T;
   }
 
   public provideCreep(key: string, creep: BaseUnit): void {
-    this.creeps[key] = creep;
+    this.units[key] = creep;
   }
 }
 

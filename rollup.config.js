@@ -19,7 +19,11 @@ export default {
   output: {
     file: "dist/main.js",
     format: "cjs",
-    sourcemap: true
+    sourcemap: true,
+    intro: "const DONE = 1;",
+    globals: {
+      DONE: "DONE"
+    },
   },
 
   plugins: [
@@ -29,9 +33,12 @@ export default {
       include: ['node_modules/**', 'src/**'],
       namedExports: {
         'src/ExpansionPlanner.js': ['run'],
-        'src/Sources.js': ['getMemoryFor'],
+        'src/Sources.js': [
+          'getContainerFor',
+          'getMemoryFor',
+          'getMinersFor',
+        ],
         'src/Controllers.js': ['getOwner'],
-        'src/Paths.js': ['search', 'serialize'],
         'src/Rooms.js': [
           'getDefenseMission',
           'getFriendlyTowers',

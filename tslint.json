@@ -8,6 +8,7 @@
     "member-ordering": [false],
     "no-console": [false],
     "no-namespace": [true, "allow-declarations"],
+    "no-unused-expression": [true, "allow-fast-null-checks"],
     "quotemark": [true, "single"],
     "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
     "typedef": [

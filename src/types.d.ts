@@ -10,8 +10,15 @@ interface RoomMemory {
 }
 
 interface BaseUnit {
-  isDyingSoon: () => boolean;
-  getReplenishedBy: () => BaseUnit;
+  getReplenishedBy: () => BaseUnit | undefined;
   hasTask: () => boolean;
-  creep: Creep;
+  isDyingSoon: () => boolean;
+  readonly id: string;
 }
+
+interface Mission {
+  provideCreep: (key: string, creep: BaseUnit) => void;
+}
+
+type DONE = 1;
+declare const DONE = 1;

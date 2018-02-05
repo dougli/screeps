@@ -1,80 +1,96 @@
-const Sources = require('Sources');
-const Task = require('Task').Task;
-const Rooms = require('Rooms');
-const Walls = require('Walls');
+import * as Rooms from 'Rooms';
+import * as Sources from 'Sources';
+import { Task } from 'Task';
+import * as Walls from 'Walls';
 
-const DONE = 'DONE';
-const NEED_ENERGY = 'NEED_ENERGY';
 const PATH_REUSE = 10;
 
-class BaseUnit {
-  constructor(creep) {
-    this.creep = creep;
-    this.creep.unit = this;
+type TaskResult = OK | DONE | ERR_NOT_ENOUGH_RESOURCES;
 
+declare global {
+  interface Creep {
+    replenishedBy?: BaseUnit;
+  }
+
+  interface CreepMemory {
+    mission?: string;
+    missionKey?: string;
+    replenish?: string;
+  }
+}
+
+abstract class BaseUnit {
+  constructor(private readonly creep: Creep) {
     const replenishTarget = this.getReplenishTarget();
     if (replenishTarget) {
       replenishTarget.replenishedBy = this;
     }
 
-    if (this.getMission() && !replenishTarget) {
-      this.getMission().provideCreep(this.getMissionKey(), this);
+    const mission = this.getMission();
+    if (mission && !replenishTarget) {
+      mission.provideCreep('' + this.getMissionKey(), this);
     }
   }
 
-  isSpawning() {
+  get id(): string {
+    return this.creep.id;
+  }
+
+  public isSpawning(): boolean {
     return this.creep.spawning;
   }
 
-  hasTask() {
+  public hasTask(): boolean {
     return !!this.getCurrentTask();
   }
 
-  getCurrentTask() {
+  public getCurrentTask(): Task {
     return this.creep.tasks[0];
   }
 
-  setTask(task) {
+  public setTask(task: Task): void {
     if (task) {
       this.creep.tasks = [task];
     }
   }
 
-  getMission() {
-    return Game.missions[this.creep.memory.mission];
+  public getMission(): Mission | null {
+    const key = this.creep.memory.mission;
+    return key ? Game.missions[key] : null;
   }
 
-  getMissionKey() {
+  public getMissionKey(): string | undefined {
     return this.creep.memory.missionKey;
   }
 
-  getReplenishTarget() {
+  public getReplenishTarget(): Creep | null {
     if (!this.creep.memory.replenish) {
       return null;
     }
 
-    const target = Game.getObjectById(this.creep.memory.replenish);
+    const target = Game.getObjectById<Creep>(this.creep.memory.replenish);
     if (!target) {
       delete this.creep.memory.replenish;
     }
     return target;
   }
 
-  getReplenishedBy() {
+  public getReplenishedBy(): BaseUnit | undefined {
     return this.creep.replenishedBy;
   }
 
-  moveToReplenishTarget() {
+  protected moveToReplenishTarget(): boolean {
     const target = this.getReplenishTarget();
     target && this.creep.moveToExperimental(target);
     return !!target;
   }
 
-  isDyingSoon() {
-    return this.creep.ticksToLive <= this.creep.body.length * 3;
+  public isDyingSoon(): boolean {
+    return !!this.creep.ticksToLive &&
+      this.creep.ticksToLive <= this.creep.body.length * 3;
   }
 
-  _doTask() {
+  protected _doTask(): TaskResult {
     const ACTION_MAP = {
       [Task.PICKUP]: this._pickup,
       [Task.TRANSFER]: this._transfer,
@@ -87,7 +103,7 @@ class BaseUnit {
     const task = this.getCurrentTask();
     if (task) {
       const result = ACTION_MAP[task.type].apply(this, [task]);
-      if (result === 'DONE') {
+      if (result === DONE) {
         this.creep.tasks.shift();
       }
       return result;
@@ -96,7 +112,7 @@ class BaseUnit {
     return DONE;
   }
 
-  run() {
+  public run(): void {
     const creep = this.creep;
 
     // Pickup nearby jonx
@@ -106,9 +122,9 @@ class BaseUnit {
         creep.pickup(nearbyEnergy[0]);
       } else {
         const nearbyCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 2);
-        const nearBuilder = nearbyCreeps.some(
-          creep => (creep.memory.role === 'builder' || creep.memory.role === 'upgrader')
-        );
+        const nearBuilder = nearbyCreeps.some((c) => {
+          return c.memory.role === 'builder' || c.memory.role === 'upgrader';
+        });
         if (!nearBuilder) {
           creep.pickup(nearbyEnergy[0]);
         }
@@ -118,9 +134,11 @@ class BaseUnit {
     this._tick();
   }
 
-  _pickup(task) {
+  protected abstract _tick(): void;
+
+  private _pickup(task: Task): TaskResult {
     const creep = this.creep;
-    let needed = creep.carryCapacity - creep.carry.energy;
+    const needed = creep.carryCapacity - creep.carry.energy;
     if (needed === 0) {
       return DONE;
     }
@@ -161,14 +179,14 @@ class BaseUnit {
     }
   }
 
-  _transfer(task) {
+  private _transfer(task: Task): TaskResult {
     const creep = this.creep;
     const target = task.target;
 
     if (target instanceof Creep) {
       if (creep.pos.isNearTo(target)) {
         creep.drop(RESOURCE_ENERGY);
-        return NEED_ENERGY;
+        return ERR_NOT_ENOUGH_RESOURCES;
       } else {
         creep.moveToExperimental(target);
         return OK;
@@ -180,15 +198,15 @@ class BaseUnit {
     const amount = Math.min(needed, task.amount, currentEnergy);
 
     if (amount <= 0) {
-      return currentEnergy === 0 ? NEED_ENERGY : DONE;
+      return currentEnergy === 0 ? ERR_NOT_ENOUGH_RESOURCES : DONE;
     }
 
     switch (creep.transfer(target, RESOURCE_ENERGY, amount)) {
     case ERR_NOT_ENOUGH_RESOURCES:
-      return NEED_ENERGY;
+      return ERR_NOT_ENOUGH_RESOURCES;
     case OK:
       if (amount >= currentEnergy) {
-        return NEED_ENERGY;
+        return ERR_NOT_ENOUGH_RESOURCES;
       } else {
         return DONE;
       }
@@ -202,7 +220,7 @@ class BaseUnit {
     }
   }
 
-  _scout(task) {
+  private _scout(task: Task): TaskResult {
     const creep = this.creep;
     const targetRoom = task.target;
     const pos = this.creep.pos;
@@ -211,15 +229,11 @@ class BaseUnit {
       return DONE;
     }
 
-    const result = this.creep.moveToRoom(targetRoom);
-
-    if (result === ERR_NO_PATH) {
-      return DONE;
-    }
+    this.creep.moveToRoom(targetRoom);
     return OK;
   }
 
-  _repair(task) {
+  private _repair(task: Task): TaskResult {
     const creep = this.creep;
     const energy = creep.carry.energy;
     if (task.target.hits === task.target.hitsMax ||
@@ -230,34 +244,34 @@ class BaseUnit {
     switch (creep.repair(task.target)) {
     case OK:
       return energy <= creep.getActiveBodyparts(WORK)
-        ? NEED_ENERGY
+        ? ERR_NOT_ENOUGH_RESOURCES
         : OK;
     case ERR_NOT_IN_RANGE:
       creep.moveToExperimental(task.target);
       return OK;
     case ERR_NOT_ENOUGH_RESOURCES:
-      return NEED_ENERGY;
+      return ERR_NOT_ENOUGH_RESOURCES;
     case ERR_INVALID_TARGET:
     default:
       return DONE;
     }
   }
 
-  _build(task) {
+  private _build(task: Task): TaskResult {
     const creep = this.creep;
     const energy = creep.carry.energy;
 
     switch (creep.build(task.target)) {
     case OK:
       return energy <= creep.getActiveBodyparts(WORK) * 5
-        ? NEED_ENERGY
+        ? ERR_NOT_ENOUGH_RESOURCES
         : OK;
     case ERR_NOT_IN_RANGE:
       creep.moveToExperimental(task.target);
       return OK;
     case ERR_NOT_ENOUGH_RESOURCES:
       creep.moveToExperimental(task.target);
-      return NEED_ENERGY;
+      return ERR_NOT_ENOUGH_RESOURCES;
     case ERR_INVALID_TARGET:
     default:
       return DONE;
@@ -265,4 +279,5 @@ class BaseUnit {
   }
 }
 
-module.exports = BaseUnit;
+export { BaseUnit };
+export default BaseUnit;
