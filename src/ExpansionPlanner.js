@@ -17,6 +17,8 @@ const Walls = require('Walls');
 const MAX_SITES_PER_ROOM = 4;
 const MIN_TRANSFER_AMOUNT = 400;
 
+const DOUBLE_UPGRADE_AMOUNT = 800000;
+
 var Spawner = {
   spawnMinimumMiner: function(spawn, plan) {
     if (spawn.room.energyAvailable < 400 ||
@@ -260,10 +262,17 @@ var ExpansionPlanner = {
     }
 
     // Then, fully expand out upgrade speed
+    const hasUpgradeCapacity = (energyPerTick - upgradeSpeed > 2) || (
+      room.controller.level < 8 &&
+      room.storage &&
+      room.storage.store[RESOURCE_ENERGY] > DOUBLE_UPGRADE_AMOUNT &&
+      energyPerTick * 2 > upgradeSpeed + 2
+    );
+
     if (room.controller && !hasBuildSites &&
         (Controllers.getContainerFor(room.controller) ||
          Controllers.getLinkFor(room.controller) || upgradeSpeed === 0) &&
-        energyPerTick - upgradeSpeed > 2) {
+        hasUpgradeCapacity) {
       Spawner.spawnUpgrader(spawn, room.controller.id);
       return;
     }
